@@ -26,6 +26,7 @@ const museums = [
   {name:"Mont De Lancey Heritage Homestead",lat:-37.7870,lng:145.4310,address:"71 Wellington Street, Wandin North VIC 3139",description:"1880年代先驱者宅基地，展示Yarra Valley地区早期定居者的乡村生活和手工艺。",link:"https://montdelancey.org.au/",region:"VIC"},
   {name:"Government House Melbourne",lat:-37.8413,lng:144.9756,address:"Government House Drive, Melbourne VIC 3004",description:"建于1876年的意大利风格建筑，是维多利亚州总督官邸，也是澳大利亚最宏伟的政府建筑之一。",link:"https://www.governor.vic.gov.au/government-house/visit-government-house",region:"VIC"},
   {name:"Tasma Terrace (National Trust HQ)",lat:-37.8143,lng:144.9666,address:"267 Collins Street, Melbourne VIC 3000",description:"1878年建造的维多利亚时期排屋群，是墨尔本市中心仅存的此类建筑，现为澳大利亚国家信托(维州)总部。",link:"https://www.nationaltrust.org.au/places/tasma-terrace/",region:"VIC"},
+  {name:"Kyneton Museum",lat:-37.2443,lng:144.4472,address:"67 Piper Street, Kyneton VIC 3444",description:"收藏于1856年建造的前新南威尔士银行分行建筑中。包括银行经理住宅、青石马厩、马车和历史农业设备收藏。",link:"https://www.mrsc.vic.gov.au/See-Do/Arts-Culture/Kyneton-Museum",region:"VIC"},
 
   // ===== New South Wales (NSW) - Historic Houses, Mansions & Estates =====
   {name:"Vaucluse House",lat:-33.8606,lng:151.2787,address:"Wentworth Road, Vaucluse NSW 2030",description:"19世纪殖民时期庄园，为政治家William Charles Wentworth的故居，拥有宏伟的建筑和历史花园。由Museums of History NSW管理。",link:"https://museums.history.nsw.gov.au/venue/vaucluse-house/",region:"NSW"},
