@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Australia Museums Map</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    #map {
+      width: 100%;
+      height: 100vh;
+      z-index: 1;
+    }
+
+    /* Sidebar */
+    #sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 300px;
+      height: 100vh;
+      background: rgba(255,255,255,0.95);
+      backdrop-filter: blur(8px);
+      z-index: 1000;
+      overflow-y: auto;
+      padding: 20px 16px;
+      box-shadow: 2px 0 12px rgba(0,0,0,0.1);
+      transition: transform 0.3s ease;
+    }
+
+    #sidebar.collapsed {
+      transform: translateX(-300px);
+    }
+
+    #sidebar h1 {
+      font-size: 20px;
+      margin-bottom: 4px;
+      color: #2c3e50;
+    }
+
+    #sidebar .subtitle {
+      font-size: 13px;
+      color: #7f8c8d;
+      margin-bottom: 16px;
+    }
+
+    /* Search */
+    #search-input {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 14px;
+      outline: none;
+      margin-bottom: 14px;
+    }
+
+    #search-input:focus {
+      border-color: #3498db;
+      box-shadow: 0 0 0 2px rgba(52,152,219,0.2);
+    }
+
+    /* Region filters */
+    .filter-section {
+      margin-bottom: 16px;
+    }
+
+    .filter-section h3 {
+      font-size: 13px;
+      color: #95a5a6;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+
+    .region-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      margin: 0 4px 6px 0;
+      border: 2px solid;
+      border-radius: 20px;
+      background: white;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: inherit;
+    }
+
+    .region-btn .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+
+    .region-btn.active {
+      color: white !important;
+    }
+
+    .region-btn .count {
+      font-size: 10px;
+      opacity: 0.7;
+    }
+
+    /* Museum list */
+    .museum-list-section h3 {
+      font-size: 13px;
+      color: #95a5a6;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+
+    #museum-count {
+      font-size: 12px;
+      color: #95a5a6;
+      margin-bottom: 8px;
+    }
+
+    .museum-item {
+      padding: 10px 8px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.15s;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    .museum-item:hover {
+      background: #f8f9fa;
+    }
+
+    .museum-item .museum-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: #2c3e50;
+      margin-bottom: 2px;
+    }
+
+    .museum-item .museum-address {
+      font-size: 12px;
+      color: #95a5a6;
+    }
+
+    .museum-item .museum-region-dot {
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      margin-right: 4px;
+      vertical-align: middle;
+    }
+
+    .museum-item .museum-region {
+      font-size: 11px;
+      color: #95a5a6;
+    }
+
+    /* Toggle button */
+    #toggle-btn {
+      position: fixed;
+      top: 14px;
+      left: 14px;
+      z-index: 1001;
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      border: none;
+      background: rgba(255,255,255,0.95);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+      cursor: pointer;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+      backdrop-filter: blur(8px);
+    }
+
+    #sidebar:not(.collapsed) ~ #toggle-btn {
+      left: 310px;
+    }
+
+    /* Popup */
+    .leaflet-popup-content-wrapper {
+      border-radius: 12px !important;
+      padding: 0 !important;
+      overflow: hidden;
+    }
+
+    .leaflet-popup-content {
+      margin: 0 !important;
+      min-width: 240px;
+    }
+
+    .popup-card {
+      padding: 16px;
+    }
+
+    .popup-card .popup-region {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 600;
+      color: white;
+      margin-bottom: 8px;
+    }
+
+    .popup-card h2 {
+      font-size: 16px;
+      color: #2c3e50;
+      margin-bottom: 6px;
+      line-height: 1.3;
+    }
+
+    .popup-card .popup-address {
+      font-size: 12px;
+      color: #7f8c8d;
+      margin-bottom: 8px;
+    }
+
+    .popup-card .popup-desc {
+      font-size: 13px;
+      color: #555;
+      line-height: 1.5;
+      margin-bottom: 12px;
+    }
+
+    .popup-card .popup-link {
+      display: inline-block;
+      padding: 6px 14px;
+      border-radius: 6px;
+      background: #3498db;
+      color: white;
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 500;
+      transition: background 0.2s;
+    }
+
+    .popup-card .popup-link:hover {
+      background: #2980b9;
+    }
+
+    /* Mobile */
+    @media (max-width: 768px) {
+      #sidebar {
+        width: 260px;
+      }
+
+      #sidebar:not(.collapsed) ~ #toggle-btn {
+        left: 270px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="map"></div>
+
+  <div id="sidebar">
+    <h1>Australia Museums</h1>
+    <p class="subtitle">全澳大利亚博物馆地图</p>
+
+    <input type="text" id="search-input" placeholder="Search museums..." />
+
+    <div class="filter-section">
+      <h3>Regions</h3>
+      <div id="region-filters"></div>
+    </div>
+
+    <div class="museum-list-section">
+      <h3>Museums</h3>
+      <div id="museum-count"></div>
+      <div id="museum-list"></div>
+    </div>
+  </div>
+
+  <button id="toggle-btn" title="Toggle sidebar">&#9776;</button>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    const museums = [
+      // ===== Victoria (VIC) =====
+      {name:"Melbourne Museum",lat:-37.8033,lng:144.9710,address:"11 Nicholson Street, Carlton VIC 3053",description:"南半球最大的博物馆，展示维多利亚州的自然历史、文化和发展。",link:"https://museumsvictoria.com.au/melbournemuseum/",region:"VIC"},
+      {name:"Immigration Museum",lat:-37.8224,lng:144.9558,address:"400 Flinders Street, Melbourne VIC 3000",description:"展示澳大利亚移民历史和多元文化故事。",link:"https://museumsvictoria.com.au/immigrationmuseum/",region:"VIC"},
+      {name:"Scienceworks",lat:-37.8261,lng:144.8915,address:"2 Booker Street, Spotswood VIC 3015",description:"互动科学博物馆，包括墨尔本天文馆。",link:"https://museumsvictoria.com.au/scienceworks/",region:"VIC"},
+      {name:"Royal Exhibition Building",lat:-37.8047,lng:144.9693,address:"9 Nicholson Street, Carlton VIC 3053",description:"世界遗产建筑，1880年建造。",link:"https://museumsvictoria.com.au/royalexhibitionbuilding/",region:"VIC"},
+      {name:"Old Treasury Building",lat:-37.8129,lng:144.9722,address:"20 Spring Street, East Melbourne VIC 3002",description:"展示墨尔本淘金热时期历史，包括地下金库。",link:"https://www.oldtreasurybuilding.org.au/",region:"VIC"},
+      {name:"Sovereign Hill",lat:-37.5736,lng:143.8563,address:"Bradshaw Street, Ballarat VIC 3350",description:"澳大利亚最著名的户外博物馆，重现1850年代淘金热时期。",link:"https://sovereignhill.com.au/",region:"VIC"},
+      {name:"Eureka Centre",lat:-37.5634,lng:143.8621,address:"102 Stawell Street South, Ballarat East VIC 3350",description:"纪念1854年Eureka起义，展示澳大利亚民主发展史。",link:"https://www.ballarat.vic.gov.au/",region:"VIC"},
+      {name:"Golden Dragon Museum",lat:-36.7588,lng:144.2801,address:"1-11 Bridge Street, Bendigo VIC 3550",description:"展示Bendigo华人社区历史，包括世界最古老的帝国龙Loong。",link:"https://goldendragonmuseum.org/",region:"VIC"},
+      {name:"Bendigo Tramways",lat:-36.7620,lng:144.2786,address:"1 Tramways Way, Bendigo VIC 3550",description:"澳大利亚最古老的运营有轨电车系统之一。",link:"https://bendigotramways.com/",region:"VIC"},
+      {name:"National Wool Museum",lat:-38.1450,lng:144.3568,address:"105 Brougham Street, Geelong VIC 3220",description:"澳大利亚唯一的羊毛博物馆。",link:"https://www.geelongaustralia.com.au/nwm/",region:"VIC"},
+      {name:"Flagstaff Hill Maritime Village",lat:-38.3833,lng:142.4868,address:"89 Merri Street, Warrnambool VIC 3280",description:"户外海事博物馆，展示沉船历史和早期港口生活。",link:"https://flagstaffhill.com.au/",region:"VIC"},
+      {name:"Beechworth Historic Precinct",lat:-36.3589,lng:146.6859,address:"Beechworth VIC 3747",description:"维多利亚州保存最完好的淘金热城镇之一，包括Ned Kelly受审的法院。",link:"https://www.beechworthonline.com.au/",region:"VIC"},
+      {name:"Swan Hill Pioneer Settlement",lat:-35.3478,lng:143.5583,address:"Monash Drive, Swan Hill VIC 3585",description:"澳大利亚最重要的户外博物馆之一，展示墨累河地区的历史。",link:"https://pioneersettlement.com.au/",region:"VIC"},
+      {name:"Phillip Island Museum",lat:-38.4500,lng:145.2333,address:"67-69 Thompson Avenue, Cowes VIC 3922",description:"展示Phillip Island的历史和发展。",link:"https://www.basscoast.vic.gov.au/",region:"VIC"},
+      {name:"ACMI",lat:-37.8173,lng:144.9691,address:"Fed Square, Flinders St, Melbourne VIC 3000",description:"探索电影、电视、电子游戏和数字文化的博物馆。",link:"https://www.acmi.net.au/",region:"VIC"},
+      {name:"NGV International",lat:-37.8226,lng:144.9689,address:"180 St Kilda Road, Melbourne VIC 3006",description:"澳大利亚最古老和最大的美术馆。",link:"https://www.ngv.vic.gov.au/",region:"VIC"},
+      {name:"Heide Museum of Modern Art",lat:-37.7561,lng:145.0817,address:"7 Templestowe Rd, Bulleen VIC 3105",description:"澳大利亚现代艺术博物馆。",link:"https://www.heide.com.au/",region:"VIC"},
+      {name:"Shrine of Remembrance",lat:-37.8305,lng:144.9734,address:"Birdwood Ave, Melbourne VIC 3001",description:"维多利亚州的战争纪念馆。",link:"https://www.shrine.org.au/",region:"VIC"},
+      {name:"Castlemaine Art Museum",lat:-37.1411,lng:144.2468,address:"14 Lyttleton Street, Castlemaine VIC 3450",description:"展示当地艺术和历史收藏，包括淘金热时期文物。",link:"https://www.castlemaineartmuseum.org.au/",region:"VIC"},
+      {name:"Coal Creek Community Park and Museum",lat:-38.5550,lng:145.8930,address:"12 Silkstone Road West, Korumburra VIC 3950",description:"户外博物馆，展示South Gippsland的煤炭开采历史。",link:"https://www.southgippsland.vic.gov.au/",region:"VIC"},
+      // ===== New South Wales (NSW) =====
+      {name:"Australian Museum",lat:-33.8744,lng:151.2112,address:"1 William Street, Sydney NSW 2010",description:"澳大利亚最古老的博物馆（1827年），展示自然历史和原住民文化。",link:"https://australian.museum/",region:"NSW"},
+      {name:"Powerhouse Museum",lat:-33.8783,lng:151.1993,address:"500 Harris Street, Ultimo NSW 2007",description:"科技、设计和创新博物馆。",link:"https://powerhouse.com.au/",region:"NSW"},
+      {name:"Museum of Contemporary Art",lat:-33.8597,lng:151.2094,address:"140 George Street, The Rocks NSW 2000",description:"澳大利亚当代艺术博物馆，位于环形码头旁。",link:"https://www.mca.com.au/",region:"NSW"},
+      {name:"Art Gallery of NSW",lat:-33.8689,lng:151.2172,address:"Art Gallery Road, Sydney NSW 2000",description:"新南威尔士州最重要的公共画廊。",link:"https://www.artgallery.nsw.gov.au/",region:"NSW"},
+      {name:"Australian National Maritime Museum",lat:-33.8694,lng:151.1985,address:"2 Murray Street, Sydney NSW 2000",description:"展示澳大利亚海事历史，包括历史船只和潜艇。",link:"https://www.sea.museum/",region:"NSW"},
+      {name:"Sydney Jewish Museum",lat:-33.8825,lng:151.2336,address:"148 Darlinghurst Road, Darlinghurst NSW 2010",description:"展示犹太历史和大屠杀教育。",link:"https://sydneyjewishmuseum.com.au/",region:"NSW"},
+      {name:"Hyde Park Barracks Museum",lat:-33.8687,lng:151.2132,address:"Queens Square, Macquarie Street, Sydney NSW 2000",description:"世界遗产，展示澳大利亚殖民历史和囚犯生活。",link:"https://www.sydneylivingmuseums.com.au/hyde-park-barracks-museum",region:"NSW"},
+      {name:"Museum of Sydney",lat:-33.8626,lng:151.2116,address:"Corner Phillip & Bridge Streets, Sydney NSW 2000",description:"位于第一任总督府遗址上，展示悉尼历史。",link:"https://www.sydneylivingmuseums.com.au/museum-of-sydney",region:"NSW"},
+      {name:"Susannah Place Museum",lat:-33.8572,lng:151.2053,address:"58-64 Gloucester Street, The Rocks NSW 2000",description:"1844年排屋，展示悉尼工人阶级生活史。",link:"https://www.sydneylivingmuseums.com.au/susannah-place-museum",region:"NSW"},
+      {name:"Sydney Observatory",lat:-33.8588,lng:151.2050,address:"1003 Upper Fort Street, Millers Point NSW 2000",description:"历史天文台，展示天文和气象历史。",link:"https://maas.museum/sydney-observatory/",region:"NSW"},
+      {name:"Newcastle Museum",lat:-32.9266,lng:151.7773,address:"6 Workshop Way, Newcastle NSW 2300",description:"展示Newcastle地区的工业、社会和文化历史。",link:"https://newcastlemuseum.com.au/",region:"NSW"},
+      {name:"Blue Mountains Cultural Centre",lat:-33.7114,lng:150.3124,address:"30 Parke Street, Katoomba NSW 2780",description:"蓝山地区的艺术和文化中心。",link:"https://www.bluemountainsculturalcentre.com.au/",region:"NSW"},
+      {name:"Norman Lindsay Gallery",lat:-33.7109,lng:150.4658,address:"14 Norman Lindsay Crescent, Faulconbridge NSW 2776",description:"展示澳大利亚艺术家Norman Lindsay的作品。",link:"https://www.normanlindsay.com.au/",region:"NSW"},
+      {name:"Broken Hill Regional Art Gallery",lat:-31.9530,lng:141.4530,address:"404-408 Argent Street, Broken Hill NSW 2880",description:"澳大利亚最古老的地区画廊之一。",link:"https://www.bhregiongallery.com.au/",region:"NSW"},
+      {name:"Wollongong Art Gallery",lat:-34.4246,lng:150.8964,address:"6 Burelli Street, Wollongong NSW 2500",description:"伊拉瓦拉地区最大的画廊。",link:"https://www.wollongongartgallery.com/",region:"NSW"},
+      {name:"Australian Fossil and Mineral Museum",lat:-33.4175,lng:149.5794,address:"224 Howick Street, Bathurst NSW 2795",description:"展示化石和矿物收藏。",link:"https://www.somervillecollection.com.au/",region:"NSW"},
+      // ===== Queensland (QLD) =====
+      {name:"Queensland Museum",lat:-27.4710,lng:153.0171,address:"Grey & Melbourne Streets, South Brisbane QLD 4101",description:"昆士兰州最大的博物馆，展示自然历史、科学和人类文化。",link:"https://www.qm.qld.gov.au/",region:"QLD"},
+      {name:"Gallery of Modern Art (GOMA)",lat:-27.4719,lng:153.0155,address:"Stanley Place, South Brisbane QLD 4101",description:"澳大利亚最大的现代和当代艺术画廊。",link:"https://www.qagoma.qld.gov.au/",region:"QLD"},
+      {name:"Queensland Art Gallery",lat:-27.4731,lng:153.0172,address:"Melbourne Street, South Brisbane QLD 4101",description:"昆士兰州主要艺术画廊。",link:"https://www.qagoma.qld.gov.au/",region:"QLD"},
+      {name:"Museum of Brisbane",lat:-27.4686,lng:153.0234,address:"Level 3, City Hall, Brisbane QLD 4000",description:"展示布里斯班城市的历史和文化。",link:"https://www.museumofbrisbane.com.au/",region:"QLD"},
+      {name:"Museum of Tropical Queensland",lat:-19.2590,lng:146.8113,address:"70-102 Flinders Street, Townsville QLD 4810",description:"展示大堡礁和热带北昆士兰历史，包括HMS Pandora沉船。",link:"https://www.qm.qld.gov.au/mtq",region:"QLD"},
+      {name:"Cairns Museum",lat:-16.9206,lng:145.7781,address:"Corner Lake & Shields Streets, Cairns QLD 4870",description:"展示远北昆士兰的历史。",link:"https://www.cairnsmuseum.org.au/",region:"QLD"},
+      {name:"James Cook Museum",lat:-15.4657,lng:145.2489,address:"Helen & Furneaux Streets, Cooktown QLD 4895",description:"展示Captain James Cook 1770年登陆的历史。",link:"https://www.nationaltrust.org.au/places/james-cook-museum/",region:"QLD"},
+      {name:"Cobb+Co Museum",lat:-27.5647,lng:151.9566,address:"27 Lindsay Street, Toowoomba QLD 4350",description:"展示澳大利亚马车运输历史。",link:"https://www.qm.qld.gov.au/cobbandco",region:"QLD"},
+      {name:"Workshops Rail Museum",lat:-27.6109,lng:152.7603,address:"North Street, North Ipswich QLD 4305",description:"展示昆士兰铁路历史。",link:"https://www.qm.qld.gov.au/workshops",region:"QLD"},
+      {name:"Stockman's Hall of Fame",lat:-23.4411,lng:148.1480,address:"Landsborough Highway, Longreach QLD 4730",description:"展示澳大利亚内陆牧场文化和先驱者精神。",link:"https://www.outbackheritage.com.au/",region:"QLD"},
+      {name:"Qantas Founders Museum",lat:-23.4339,lng:148.1447,address:"Sir Hudson Fysh Drive, Longreach QLD 4730",description:"展示Qantas创立历史，包括退役波音747。",link:"https://www.qfom.com.au/",region:"QLD"},
+      {name:"Rockhampton Heritage Village",lat:-23.3630,lng:150.4825,address:"296 Boundary Road, Parkhurst QLD 4702",description:"户外博物馆，还原20世纪初期乡村生活。",link:"https://www.heritagevillage.com.au/",region:"QLD"},
+      {name:"Abbey Museum",lat:-27.0830,lng:152.9590,address:"1 Old Toorbul Point Road, Caboolture QLD 4510",description:"展示从古埃及到中世纪的世界文明文物。",link:"https://www.abbeymuseum.com.au/",region:"QLD"},
+      {name:"Bundaberg Rum Distillery Museum",lat:-24.8817,lng:152.3476,address:"Hills Street, Bundaberg East QLD 4670",description:"展示Bundaberg朗姆酒的生产历史。",link:"https://www.bundabergrum.com.au/",region:"QLD"},
+      {name:"Sir Thomas Brisbane Planetarium",lat:-27.4768,lng:152.9760,address:"Mt Coot-tha Road, Toowong QLD 4066",description:"南半球最大的天文馆之一。",link:"https://www.brisbane.qld.gov.au/",region:"QLD"},
+      // ===== South Australia (SA) =====
+      {name:"South Australian Museum",lat:-34.9211,lng:138.6020,address:"North Terrace, Adelaide SA 5000",description:"展示自然历史和原住民文化，拥有世界最大的澳大利亚原住民文物收藏。",link:"https://www.samuseum.sa.gov.au/",region:"SA"},
+      {name:"Art Gallery of South Australia",lat:-34.9206,lng:138.6010,address:"North Terrace, Adelaide SA 5000",description:"南澳最重要的视觉艺术博物馆，收藏超过45,000件作品。",link:"https://www.agsa.sa.gov.au/",region:"SA"},
+      {name:"Migration Museum",lat:-34.9192,lng:138.6082,address:"82 Kintore Avenue, Adelaide SA 5000",description:"展示南澳大利亚移民和多元文化历史。",link:"https://migration.history.sa.gov.au/",region:"SA"},
+      {name:"National Motor Museum",lat:-34.9786,lng:138.7437,address:"Shannon Street, Birdwood SA 5234",description:"澳大利亚最大的汽车博物馆。",link:"https://motor.history.sa.gov.au/",region:"SA"},
+      {name:"Tandanya National Aboriginal Cultural Institute",lat:-34.9257,lng:138.6067,address:"253 Grenfell Street, Adelaide SA 5000",description:"澳大利亚第一个原住民拥有和管理的艺术中心。",link:"https://www.tandanya.com.au/",region:"SA"},
+      {name:"Maritime Museum of South Australia",lat:-35.1221,lng:138.4946,address:"117 St Vincent Street, Port Adelaide SA 5015",description:"展示南澳海事历史。",link:"https://maritime.history.sa.gov.au/",region:"SA"},
+      {name:"SA Aviation Museum",lat:-35.1125,lng:138.5113,address:"66 Lipson Street, Port Adelaide SA 5015",description:"展示南澳航空历史。",link:"https://www.saam.org.au/",region:"SA"},
+      {name:"National Railway Museum",lat:-35.1190,lng:138.4910,address:"76 Lipson Street, Port Adelaide SA 5015",description:"澳大利亚最大的铁路博物馆。",link:"https://www.nrm.org.au/",region:"SA"},
+      {name:"Hahndorf Academy Museum",lat:-35.0285,lng:138.8103,address:"68 Main Street, Hahndorf SA 5245",description:"展示澳大利亚最古老的德国定居点历史。",link:"https://www.hahndorfacademy.com.au/",region:"SA"},
+      {name:"Adelaide Oval Museum",lat:-34.9157,lng:138.5961,address:"War Memorial Drive, North Adelaide SA 5006",description:"展示板球和足球历史，包括Don Bradman展览。",link:"https://www.adelaideoval.com.au/",region:"SA"},
+      {name:"Barossa Museum",lat:-34.5607,lng:138.9510,address:"47 Murray Street, Tanunda SA 5352",description:"展示Barossa Valley德国移民和葡萄酒产业。",link:"https://www.barossamuseum.com.au/",region:"SA"},
+      {name:"Umoona Opal Mine & Museum",lat:-29.0133,lng:134.7544,address:"Hutchison Street, Coober Pedy SA 5723",description:"展示Coober Pedy蛋白石开采历史和地下生活。",link:"https://www.umoonaopalmine.com.au/",region:"SA"},
+      {name:"Old Tailem Town Pioneer Village",lat:-35.2581,lng:139.4431,address:"19 Railway Terrace, Tailem Bend SA 5260",description:"澳大利亚最大的先驱者村庄。",link:"https://www.oldtailemtown.com.au/",region:"SA"},
+      {name:"Whyalla Maritime Museum",lat:-33.0292,lng:137.5192,address:"Lincoln Highway, Whyalla SA 5600",description:"展示HMAS Whyalla号和钢铁城市的历史。",link:"https://www.whyalla.sa.gov.au/",region:"SA"},
+      // ===== Western Australia (WA) =====
+      {name:"WA Museum Boola Bardip",lat:-31.9497,lng:115.8619,address:"Perth Cultural Centre, James Street, Perth WA 6000",description:"西澳最大的博物馆，展示自然和文化历史。",link:"https://museum.wa.gov.au/museums/boola-bardip",region:"WA"},
+      {name:"WA Maritime Museum",lat:-31.9987,lng:115.7184,address:"Victoria Quay Road, Fremantle WA 6160",description:"展示西澳海事遗产，包括Australia II帆船号。",link:"https://museum.wa.gov.au/museums/maritime",region:"WA"},
+      {name:"WA Shipwrecks Museum",lat:-32.0572,lng:115.7424,address:"47 Cliff Street, Fremantle WA 6160",description:"展示印度洋沉船历史，包括Batavia号。",link:"https://museum.wa.gov.au/museums/shipwrecks",region:"WA"},
+      {name:"Museum of the Goldfields",lat:-30.7439,lng:121.4771,address:"17 Hannan Street, Kalgoorlie WA 6430",description:"展示西澳淘金热历史和矿业发展。",link:"https://museum.wa.gov.au/museums/goldfields",region:"WA"},
+      {name:"Museum of Geraldton",lat:-28.7683,lng:114.6121,address:"2 Museum Place, Geraldton WA 6530",description:"展示Batavia沉船历史和Geraldton文化遗产。",link:"https://museum.wa.gov.au/museums/geraldton",region:"WA"},
+      {name:"Museum of the Great Southern",lat:-35.0286,lng:117.8803,address:"Residency Road, Albany WA 6330",description:"展示Albany地区的历史和文化遗产。",link:"https://museum.wa.gov.au/museums/great-southern",region:"WA"},
+      {name:"Art Gallery of Western Australia",lat:-31.9493,lng:115.8599,address:"Perth Cultural Centre, James Street, Perth WA 6000",description:"西澳主要美术馆。",link:"https://artgallery.wa.gov.au/",region:"WA"},
+      {name:"Fremantle Prison",lat:-32.0538,lng:115.7534,address:"1 The Terrace, Fremantle WA 6160",description:"世界遗产，1850年代由囚犯建造的监狱。",link:"https://fremantleprison.com.au/",region:"WA"},
+      {name:"Fremantle Arts Centre",lat:-32.0525,lng:115.7524,address:"1 Finnerty Street, Fremantle WA 6160",description:"在历史殖民建筑中展示当代艺术。",link:"https://www.fremantle.wa.gov.au/fac",region:"WA"},
+      {name:"Aviation Heritage Museum",lat:-32.0044,lng:115.9651,address:"Bull Creek Drive, Bull Creek WA 6149",description:"展示澳大利亚航空历史，包括Lancaster轰炸机。",link:"https://www.raafawa.org.au/museum/",region:"WA"},
+      {name:"Broome Historical Museum",lat:-17.9614,lng:122.2359,address:"67 Robinson Street, Broome WA 6725",description:"展示珍珠采集历史和布鲁姆多元文化。",link:"https://www.broomemuseum.org.au/",region:"WA"},
+      {name:"Scitech Discovery Centre",lat:-31.9460,lng:115.8585,address:"Sutherland Street, West Perth WA 6005",description:"互动科技和科学展览中心。",link:"https://www.scitech.org.au/",region:"WA"},
+      {name:"HMAS Sydney II Memorial",lat:-28.7636,lng:114.6192,address:"Gummer Avenue, Geraldton WA 6530",description:"纪念二战中沉没的HMAS Sydney II。",link:"https://www.geraldton.wa.gov.au/",region:"WA"},
+      // ===== Tasmania (TAS) =====
+      {name:"MONA",lat:-42.8286,lng:147.2866,address:"655 Main Road, Berriedale TAS 7011",description:"澳大利亚最大的私人博物馆，以前卫和争议性艺术闻名。",link:"https://mona.net.au/",region:"TAS"},
+      {name:"Tasmanian Museum and Art Gallery",lat:-42.8838,lng:147.3303,address:"Dunn Place, Hobart TAS 7000",description:"塔斯马尼亚最重要的博物馆。",link:"https://www.tmag.tas.gov.au/",region:"TAS"},
+      {name:"Port Arthur Historic Site",lat:-43.1473,lng:147.8537,address:"Arthur Highway, Port Arthur TAS 7182",description:"世界遗产，澳大利亚最著名的囚犯遗址。",link:"https://portarthur.org.au/",region:"TAS"},
+      {name:"Queen Victoria Museum",lat:-41.4335,lng:147.1383,address:"2 Invermay Road, Launceston TAS 7248",description:"塔斯马尼亚北部最大的博物馆。",link:"https://www.qvmag.tas.gov.au/",region:"TAS"},
+      {name:"Cascade Female Factory",lat:-42.8897,lng:147.3128,address:"16 Degraves Street, South Hobart TAS 7004",description:"世界遗产，女性囚犯工厂遗址。",link:"https://femalefactory.org.au/",region:"TAS"},
+      {name:"Maritime Museum of Tasmania",lat:-42.8818,lng:147.3344,address:"16 Argyle Street, Hobart TAS 7000",description:"展示塔斯马尼亚海事历史。",link:"https://www.maritimetas.org/",region:"TAS"},
+      {name:"Zeehan West Coast Heritage Centre",lat:-41.8834,lng:145.3350,address:"Main Street, Zeehan TAS 7469",description:"展示塔斯马尼亚西海岸矿业历史。",link:"https://www.westcoastheritagecentre.com.au/",region:"TAS"},
+      {name:"National Automobile Museum",lat:-41.4319,lng:147.1396,address:"86 Cimitiere Street, Launceston TAS 7250",description:"展示经典和古董汽车收藏。",link:"https://www.namt.com.au/",region:"TAS"},
+      {name:"Woolmers Estate",lat:-41.5200,lng:147.1590,address:"658 Woolmers Lane, Longford TAS 7301",description:"世界遗产，展示殖民时期乡绅生活。",link:"https://woolmers.com.au/",region:"TAS"},
+      {name:"West Coast Wilderness Railway",lat:-42.1467,lng:145.3292,address:"The Esplanade, Strahan TAS 7468",description:"历史蒸汽火车，穿越世界遗产雨林。",link:"https://www.wcwr.com.au/",region:"TAS"},
+      {name:"Bass & Flinders Centre",lat:-40.7764,lng:145.0347,address:"George Town TAS 7253",description:"展示Bass和Flinders环航塔斯马尼亚的历史。",link:"https://www.bassandflinderscentre.com.au/",region:"TAS"},
+      // ===== Northern Territory (NT) =====
+      {name:"Museum & Art Gallery of the NT",lat:-12.4411,lng:130.8416,address:"19 Conacher Street, Fannie Bay NT 0820",description:"展示北领地自然历史和原住民艺术，包括Cyclone Tracy展览。",link:"https://www.magnt.net.au/",region:"NT"},
+      {name:"Defence of Darwin Experience",lat:-12.4334,lng:130.8386,address:"5434 Alec Fong Lim Drive, East Point NT 0820",description:"展示1942年达尔文轰炸的历史。",link:"https://www.defenceofdarwin.nt.gov.au/",region:"NT"},
+      {name:"Royal Flying Doctor Service",lat:-23.6972,lng:133.8705,address:"8-10 Stuart Terrace, Alice Springs NT 0870",description:"展示皇家飞行医生服务的历史。",link:"https://www.rfdsalicesprings.com.au/",region:"NT"},
+      {name:"Alice Springs Telegraph Station",lat:-23.6753,lng:133.8675,address:"Herbert Heritage Drive, Alice Springs NT 0870",description:"历史电报站旧址，Alice Springs城镇的起源地。",link:"https://www.alicespringstelegraphstation.com.au/",region:"NT"},
+      {name:"Museum of Central Australia",lat:-23.6980,lng:133.8781,address:"61 Larapinta Drive, Alice Springs NT 0870",description:"展示中部澳大利亚自然历史，包括化石和陨石。",link:"https://www.magnt.net.au/museum-of-central-australia",region:"NT"},
+      {name:"Araluen Arts Centre",lat:-23.6992,lng:133.8787,address:"61 Larapinta Drive, Alice Springs NT 0870",description:"展示中部澳大利亚原住民艺术和当代艺术。",link:"https://araluenartscentre.nt.gov.au/",region:"NT"},
+      {name:"School of the Air Visitor Centre",lat:-23.6975,lng:133.8700,address:"80 Head Street, Alice Springs NT 0870",description:"展示偏远地区空中学校教育系统。",link:"https://www.schooloftheair.net.au/",region:"NT"},
+      {name:"Warradjan Aboriginal Cultural Centre",lat:-12.8317,lng:132.4400,address:"Kakadu Highway, Cooinda NT 0886",description:"展示Kakadu地区原住民Bininj/Mungguy人的文化。",link:"https://parksaustralia.gov.au/kakadu/",region:"NT"},
+      {name:"Darwin Aviation Museum",lat:-12.4239,lng:130.8861,address:"557 Stuart Highway, Winnellie NT 0820",description:"展示北澳航空历史，包括B-52轰炸机。",link:"https://www.darwinaviationmuseum.com.au/",region:"NT"},
+      {name:"Nitmiluk Visitor Centre",lat:-14.3145,lng:132.4120,address:"Nitmiluk National Park, Katherine NT 0852",description:"展示Katherine Gorge和Jawoyn人的文化。",link:"https://www.nitmiluktours.com.au/",region:"NT"},
+      // ===== Australian Capital Territory (ACT) =====
+      {name:"Australian War Memorial",lat:-35.2809,lng:149.1478,address:"Treloar Crescent, Campbell ACT 2612",description:"澳大利亚最重要的战争纪念馆和博物馆。",link:"https://www.awm.gov.au/",region:"ACT"},
+      {name:"National Museum of Australia",lat:-35.2929,lng:149.1205,address:"Lawson Crescent, Acton ACT 2601",description:"国家博物馆，展示澳大利亚历史、原住民文化和环境。",link:"https://www.nma.gov.au/",region:"ACT"},
+      {name:"National Gallery of Australia",lat:-35.3003,lng:149.1352,address:"Parkes Place, Parkes ACT 2600",description:"澳大利亚国家美术馆，收藏超过166,000件艺术品。",link:"https://nga.gov.au/",region:"ACT"},
+      {name:"National Portrait Gallery",lat:-35.2998,lng:149.1322,address:"King Edward Terrace, Parkes ACT 2600",description:"展示澳大利亚杰出人物的肖像。",link:"https://www.portrait.gov.au/",region:"ACT"},
+      {name:"Questacon",lat:-35.2978,lng:149.1374,address:"King Edward Terrace, Parkes ACT 2600",description:"互动科技中心，拥有超过200个互动展品。",link:"https://www.questacon.edu.au/",region:"ACT"},
+      {name:"National Library of Australia",lat:-35.2967,lng:149.1295,address:"Parkes Place, Parkes ACT 2600",description:"澳大利亚国家图书馆。",link:"https://www.nla.gov.au/",region:"ACT"},
+      {name:"Museum of Australian Democracy",lat:-35.3005,lng:149.1289,address:"Old Parliament House, Parkes ACT 2600",description:"位于旧国会大厦，展示民主制度发展。",link:"https://www.moadoph.gov.au/",region:"ACT"},
+      {name:"Royal Australian Mint",lat:-35.3026,lng:149.0940,address:"Denison Street, Deakin ACT 2600",description:"澳大利亚皇家铸币厂。",link:"https://www.ramint.gov.au/",region:"ACT"},
+      {name:"National Film and Sound Archive",lat:-35.2837,lng:149.1214,address:"McCoy Circuit, Acton ACT 2601",description:"保存澳大利亚的电影、电视和音乐遗产。",link:"https://www.nfsa.gov.au/",region:"ACT"},
+      {name:"Canberra Museum and Gallery",lat:-35.2800,lng:149.1330,address:"London Circuit, Civic Square ACT 2601",description:"展示堪培拉和首都地区的历史和艺术。",link:"https://www.cmag.com.au/",region:"ACT"},
+      {name:"National Dinosaur Museum",lat:-35.2144,lng:149.0656,address:"Gold Creek Road, Nicholls ACT 2913",description:"展示恐龙化石和史前生物。",link:"https://www.nationaldinosaurmuseum.com.au/",region:"ACT"},
+      {name:"Cockington Green Gardens",lat:-35.2183,lng:149.0667,address:"Gold Creek Road, Nicholls ACT 2913",description:"展示世界各地建筑微缩模型。",link:"https://www.cockingtongreen.com.au/",region:"ACT"},
+      {name:"National Archives of Australia",lat:-35.2939,lng:149.1418,address:"Queen Victoria Terrace, Parkes ACT 2600",description:"保存联邦政府的历史记录。",link:"https://www.naa.gov.au/",region:"ACT"}
+    ];
+
+    const regions = [
+      {name:"VIC",color:"#16a085",fullName:"Victoria"},
+      {name:"NSW",color:"#2980b9",fullName:"New South Wales"},
+      {name:"QLD",color:"#e74c3c",fullName:"Queensland"},
+      {name:"SA",color:"#e67e22",fullName:"South Australia"},
+      {name:"WA",color:"#8e44ad",fullName:"Western Australia"},
+      {name:"TAS",color:"#27ae60",fullName:"Tasmania"},
+      {name:"NT",color:"#d35400",fullName:"Northern Territory"},
+      {name:"ACT",color:"#2c3e50",fullName:"Australian Capital Territory"}
+    ];
+  </script>
+  <script>
+    // --- Map setup ---
+    const map = L.map('map', {
+      center: [-28.0, 134.0],
+      zoom: 5,
+      zoomControl: false
+    });
+
+    L.control.zoom({ position: 'bottomright' }).addTo(map);
+
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>',
+      maxZoom: 19
+    }).addTo(map);
+
+    // --- Region color & fullName lookup ---
+    const regionColorMap = {};
+    const regionFullNameMap = {};
+    regions.forEach(r => {
+      regionColorMap[r.name] = r.color;
+      regionFullNameMap[r.name] = r.fullName || r.name;
+    });
+
+    function getColor(region) {
+      return regionColorMap[region] || '#999';
+    }
+
+    // --- Markers ---
+    const markersLayer = L.layerGroup().addTo(map);
+    let allMarkers = [];
+
+    function createCircleMarker(m) {
+      const color = getColor(m.region);
+      const marker = L.circleMarker([m.lat, m.lng], {
+        radius: 7,
+        fillColor: color,
+        color: '#fff',
+        weight: 2,
+        opacity: 1,
+        fillOpacity: 0.85
+      });
+
+      marker.bindPopup(`
+        <div class="popup-card">
+          <span class="popup-region" style="background:${color}">${regionFullNameMap[m.region] || m.region}</span>
+          <h2>${m.name}</h2>
+          <div class="popup-address">${m.address}</div>
+          <div class="popup-desc">${m.description}</div>
+          <a class="popup-link" href="${m.link}" target="_blank" rel="noopener">Visit Website</a>
+        </div>
+      `, { maxWidth: 300 });
+
+      marker.museumData = m;
+      return marker;
+    }
+
+    museums.forEach(m => {
+      const marker = createCircleMarker(m);
+      markersLayer.addLayer(marker);
+      allMarkers.push(marker);
+    });
+
+    // --- Region filter buttons ---
+    const activeRegions = new Set(regions.map(r => r.name));
+    const filtersDiv = document.getElementById('region-filters');
+
+    // Count museums per region
+    const regionCounts = {};
+    museums.forEach(m => {
+      regionCounts[m.region] = (regionCounts[m.region] || 0) + 1;
+    });
+
+    regions.forEach(r => {
+      const btn = document.createElement('button');
+      btn.className = 'region-btn active';
+      btn.style.borderColor = r.color;
+      btn.style.color = r.color;
+      btn.style.backgroundColor = r.color;
+      btn.innerHTML = `<span class="dot" style="background:white"></span>${r.fullName || r.name} <span class="count">(${regionCounts[r.name] || 0})</span>`;
+      btn.dataset.region = r.name;
+
+      btn.addEventListener('click', () => {
+        if (activeRegions.has(r.name)) {
+          activeRegions.delete(r.name);
+          btn.classList.remove('active');
+          btn.style.backgroundColor = 'white';
+          btn.querySelector('.dot').style.background = r.color;
+        } else {
+          activeRegions.add(r.name);
+          btn.classList.add('active');
+          btn.style.backgroundColor = r.color;
+          btn.querySelector('.dot').style.background = 'white';
+        }
+        applyFilters();
+      });
+
+      filtersDiv.appendChild(btn);
+    });
+
+    // --- Search ---
+    const searchInput = document.getElementById('search-input');
+    searchInput.addEventListener('input', () => applyFilters());
+
+    function applyFilters() {
+      const query = searchInput.value.toLowerCase().trim();
+      let visibleCount = 0;
+
+      allMarkers.forEach(marker => {
+        const m = marker.museumData;
+        const regionMatch = activeRegions.has(m.region);
+        const searchMatch = !query || m.name.toLowerCase().includes(query) || m.address.toLowerCase().includes(query);
+        const visible = regionMatch && searchMatch;
+
+        if (visible) {
+          markersLayer.addLayer(marker);
+          visibleCount++;
+        } else {
+          markersLayer.removeLayer(marker);
+        }
+      });
+
+      document.getElementById('museum-count').textContent = `${visibleCount} of ${museums.length} museums`;
+      renderMuseumList(query);
+    }
+
+    // --- Museum list ---
+    function renderMuseumList(query) {
+      const listDiv = document.getElementById('museum-list');
+      listDiv.innerHTML = '';
+
+      const filtered = museums.filter(m => {
+        const regionMatch = activeRegions.has(m.region);
+        const searchMatch = !query || m.name.toLowerCase().includes(query) || m.address.toLowerCase().includes(query);
+        return regionMatch && searchMatch;
+      });
+
+      filtered.forEach(m => {
+        const item = document.createElement('div');
+        item.className = 'museum-item';
+        const color = getColor(m.region);
+        item.innerHTML = `
+          <div class="museum-name">${m.name}</div>
+          <div class="museum-address">${m.address}</div>
+          <span class="museum-region-dot" style="background:${color}"></span>
+          <span class="museum-region">${m.region}</span>
+        `;
+        item.addEventListener('click', () => {
+          map.setView([m.lat, m.lng], 13);
+          // Open the corresponding marker popup
+          allMarkers.forEach(marker => {
+            if (marker.museumData === m) {
+              marker.openPopup();
+            }
+          });
+          // On mobile, close sidebar
+          if (window.innerWidth < 768) {
+            sidebar.classList.add('collapsed');
+          }
+        });
+        listDiv.appendChild(item);
+      });
+    }
+
+    // Initial render
+    applyFilters();
+
+    // --- Toggle sidebar ---
+    const sidebar = document.getElementById('sidebar');
+    const toggleBtn = document.getElementById('toggle-btn');
+
+    toggleBtn.addEventListener('click', () => {
+      sidebar.classList.toggle('collapsed');
+    });
+
+    // Start collapsed on mobile
+    if (window.innerWidth < 768) {
+      sidebar.classList.add('collapsed');
+    }
+  </script>
+</body>
+</html>
