@@ -68,49 +68,6 @@
       box-shadow: 0 0 0 2px rgba(52,152,219,0.2);
     }
 
-    /* Region filters */
-    .filter-section {
-      margin-bottom: 16px;
-    }
-
-    .filter-section h3 {
-      font-size: 13px;
-      color: #95a5a6;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin-bottom: 8px;
-    }
-
-    .region-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 6px 10px;
-      margin: 0 4px 6px 0;
-      border: 2px solid;
-      border-radius: 20px;
-      background: white;
-      font-size: 12px;
-      cursor: pointer;
-      transition: all 0.2s;
-      font-family: inherit;
-    }
-
-    .region-btn .dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-    }
-
-    .region-btn.active {
-      color: white !important;
-    }
-
-    .region-btn .count {
-      font-size: 10px;
-      opacity: 0.7;
-    }
-
     /* Museum list */
     .museum-list-section h3 {
       font-size: 13px;
@@ -187,6 +144,8 @@
 
     #sidebar:not(.collapsed) ~ #toggle-btn {
       left: 310px;
+      background: #3498db;
+      color: white;
     }
 
     /* Popup */
@@ -236,19 +195,52 @@
     }
 
     .popup-card .popup-link {
-      display: inline-block;
-      padding: 6px 14px;
-      border-radius: 6px;
-      background: #3498db;
-      color: white;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      border: 1.5px solid #333;
+      border-radius: 4px;
+      color: #333;
       text-decoration: none;
-      font-size: 13px;
-      font-weight: 500;
-      transition: background 0.2s;
+      font-size: 16px;
+      transition: all 0.2s;
     }
 
     .popup-card .popup-link:hover {
-      background: #2980b9;
+      background: #f5f5f5;
+      border-color: #000;
+    }
+
+    /* Preview Image */
+    .popup-preview {
+      width: 100%;
+      height: 180px;
+      background: #f0f0f0;
+      border-radius: 8px;
+      overflow: hidden;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      color: #999;
+    }
+
+    .popup-preview img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .preview-loading {
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 0.6; }
+      50% { opacity: 1; }
     }
 
     /* Mobile */
@@ -273,11 +265,6 @@
 
     <input type="text" id="search-input" placeholder="Search museums & historic places..." />
 
-    <div class="filter-section">
-      <h3>Regions</h3>
-      <div id="region-filters"></div>
-    </div>
-
     <div class="museum-list-section">
       <h3>Museums</h3>
       <div id="museum-count"></div>
@@ -298,13 +285,13 @@ const museums = [
   {name:"Bendigo Tramways",lat:-36.7620,lng:144.2786,address:"1 Tramways Way, Bendigo VIC 3550",description:"澳大利亚最古老的运营有轨电车系统之一。",link:"https://bendigotramways.com/",region:"VIC"},
   {name:"National Wool Museum",lat:-38.1450,lng:144.3568,address:"105 Brougham Street, Geelong VIC 3220",description:"澳大利亚唯一的羊毛博物馆。",link:"https://www.geelongaustralia.com.au/nwm/",region:"VIC"},
   {name:"Flagstaff Hill Maritime Village",lat:-38.3833,lng:142.4868,address:"89 Merri Street, Warrnambool VIC 3280",description:"户外海事博物馆，展示沉船历史和早期港口生活。",link:"https://flagstaffhill.com.au/",region:"VIC"},
-  {name:"Beechworth Historic Precinct",lat:-36.3589,lng:146.6859,address:"Beechworth VIC 3747",description:"维多利亚州保存最完好的淘金热城镇之一，包括Ned Kelly受审的法院。",link:"https://www.beechworthonline.com.au/",region:"VIC"},
-  {name:"Swan Hill Pioneer Settlement",lat:-35.3478,lng:143.5583,address:"Monash Drive, Swan Hill VIC 3585",description:"澳大利亚最重要的户外博物馆之一，展示墨累河地区的历史。",link:"https://pioneersettlement.com.au/",region:"VIC"},
+  {name:"Beechworth Historic Precinct",lat:-36.3589,lng:146.6859,address:"Beechworth VIC 3747",description:"维多利亚州保存最完好的淘金热城镇之一，包括Ned Kelly受审的法院。",link:"https://courthouse.explorebeechworth.com.au/",region:"VIC"},
+  {name:"Swan Hill Pioneer Settlement",lat:-35.3478,lng:143.5583,address:"Monash Drive, Swan Hill VIC 3585",description:"澳大利亚最重要的户外博物馆之一，展示墨累河地区的历史。",link:"https://www.pioneersettlement.com.au/Visit/By-Day",region:"VIC"},
   {name:"Como House & Garden",lat:-37.8398,lng:145.0127,address:"Corner Williams Road & Lechlade Avenue, South Yarra VIC 3141",description:"建于1847年的殖民时期豪宅，融合澳大利亚摄政式和意大利风格建筑，拥有精美花园和室内陈设。",link:"https://www.nationaltrust.org.au/places/como-house/",region:"VIC"},
   {name:"Rippon Lea Estate",lat:-37.8878,lng:145.0018,address:"192 Hotham Street, Elsternwick VIC 3185",description:"1868年建造的维多利亚时期宏伟庄园，占地14英亩，拥有华丽宅邸、湖泊、蕨类温室和花园。",link:"https://www.nationaltrust.org.au/places/rippon-lea-estate/",region:"VIC"},
   {name:"Labassa",lat:-37.8731,lng:145.0198,address:"2 Manor Grove, Caulfield North VIC 3161",description:"1890年代华丽的维多利亚豪宅，以精美的彩色玻璃窗、手绘天花板和精致的石膏装饰闻名。",link:"https://www.nationaltrust.org.au/places/labassa/",region:"VIC"},
   {name:"Werribee Mansion",lat:-37.8975,lng:144.6827,address:"K Road, Werribee VIC 3030",description:"1870年代意大利风格豪宅，由牧场大亨Chirnside家族建造，坐落于Werribee公园花园和州立玫瑰园之中。",link:"https://www.parks.vic.gov.au/places-to-see/parks/werribee-park/things-to-do/werribee-park-mansion",region:"VIC"},
-  {name:"Captain Cook's Cottage",lat:-37.8142,lng:144.9836,address:"Fitzroy Gardens, Wellington Parade, East Melbourne VIC 3002",description:"库克船长父母于1755年在英国约克郡建造的故居，1934年拆卸后运至墨尔本重建于费兹罗花园中。",link:"https://www.melbourne.vic.gov.au/community/hubs-bookable-spaces/Pages/Captain-Cooks-Cottage.aspx",region:"VIC"},
+  {name:"Captain Cook's Cottage",lat:-37.8142,lng:144.9836,address:"Fitzroy Gardens, Wellington Parade, East Melbourne VIC 3002",description:"库克船长父母于1755年在英国约克郡建造的故居，1934年拆卸后运至墨尔本重建于费兹罗花园中。",link:"https://whatson.melbourne.vic.gov.au/things-to-do/cooks-cottage",region:"VIC"},
   {name:"La Trobe's Cottage",lat:-37.8396,lng:144.9730,address:"Dallas Brooks Drive, Melbourne VIC 3004",description:"维多利亚州首任副总督Charles La Trobe的故居，1839年建造，是墨尔本最古老的建筑之一。",link:"https://www.nationaltrust.org.au/places/la-trobes-cottage/",region:"VIC"},
   {name:"Barwon Park Mansion",lat:-38.0023,lng:144.0177,address:"105 Inverleigh Road, Winchelsea VIC 3240",description:"1869至1871年建造的42间房青石豪宅，由牧场主Thomas Austin夫妇建造，气势恢宏。",link:"https://www.nationaltrust.org.au/places/barwon-park/",region:"VIC"},
   {name:"Gulf Station",lat:-37.6880,lng:145.4430,address:"1029 Melba Highway, Yarra Glen VIC 3775",description:"维多利亚州保存最完整的早期先驱农场之一，展示1850年代至1940年代的乡村农业生活。",link:"https://www.nationaltrust.org.au/places/gulf-station/",region:"VIC"},
@@ -459,6 +446,27 @@ const regions = [
       return regionColorMap[region] || '#999';
     }
 
+    // --- Fetch preview image from Microlink API ---
+    async function fetchPreviewImage(url, targetElement) {
+      try {
+        const response = await fetch(`https://api.microlink.io?url=${encodeURIComponent(url)}`);
+        const data = await response.json();
+        
+        if (data.data && data.data.image && data.data.image.url) {
+          const imageUrl = data.data.image.url;
+          targetElement.innerHTML = `<img src="${imageUrl}" alt="Preview" onerror="this.parentElement.innerHTML='Preview unavailable'">`;
+          targetElement.classList.remove('preview-loading');
+        } else {
+          targetElement.innerHTML = 'No preview available';
+          targetElement.classList.remove('preview-loading');
+        }
+      } catch (error) {
+        console.error('Failed to fetch preview:', error);
+        targetElement.innerHTML = 'Preview unavailable';
+        targetElement.classList.remove('preview-loading');
+      }
+    }
+
     // --- Markers ---
     const markersLayer = L.layerGroup().addTo(map);
     let allMarkers = [];
@@ -479,10 +487,20 @@ const regions = [
           <span class="popup-region" style="background:${color}">${regionFullNameMap[m.region] || m.region}</span>
           <h2>${m.name}</h2>
           <div class="popup-address">${m.address}</div>
+          <div class="popup-preview preview-loading" data-url="${m.link}">加载中...</div>
           <div class="popup-desc">${m.description}</div>
-          <a class="popup-link" href="${m.link}" target="_blank" rel="noopener">Visit Website</a>
+          <a class="popup-link" href="${m.link}" target="_blank" rel="noopener" title="Visit Website">↗</a>
         </div>
       `, { maxWidth: 300 });
+
+      // Load preview image when popup is opened
+      marker.on('popupopen', () => {
+        const previewDiv = document.querySelector(`[data-url="${m.link}"]`);
+        if (previewDiv && !previewDiv.dataset.loaded) {
+          fetchPreviewImage(m.link, previewDiv);
+          previewDiv.dataset.loaded = 'true';
+        }
+      });
 
       marker.museumData = m;
       return marker;
@@ -492,43 +510,6 @@ const regions = [
       const marker = createCircleMarker(m);
       markersLayer.addLayer(marker);
       allMarkers.push(marker);
-    });
-
-    // --- Region filter buttons ---
-    const activeRegions = new Set(regions.map(r => r.name));
-    const filtersDiv = document.getElementById('region-filters');
-
-    // Count museums per region
-    const regionCounts = {};
-    museums.forEach(m => {
-      regionCounts[m.region] = (regionCounts[m.region] || 0) + 1;
-    });
-
-    regions.forEach(r => {
-      const btn = document.createElement('button');
-      btn.className = 'region-btn active';
-      btn.style.borderColor = r.color;
-      btn.style.color = r.color;
-      btn.style.backgroundColor = r.color;
-      btn.innerHTML = `<span class="dot" style="background:white"></span>${r.fullName || r.name} <span class="count">(${regionCounts[r.name] || 0})</span>`;
-      btn.dataset.region = r.name;
-
-      btn.addEventListener('click', () => {
-        if (activeRegions.has(r.name)) {
-          activeRegions.delete(r.name);
-          btn.classList.remove('active');
-          btn.style.backgroundColor = 'white';
-          btn.querySelector('.dot').style.background = r.color;
-        } else {
-          activeRegions.add(r.name);
-          btn.classList.add('active');
-          btn.style.backgroundColor = r.color;
-          btn.querySelector('.dot').style.background = 'white';
-        }
-        applyFilters();
-      });
-
-      filtersDiv.appendChild(btn);
     });
 
     // --- Search ---
@@ -541,11 +522,9 @@ const regions = [
 
       allMarkers.forEach(marker => {
         const m = marker.museumData;
-        const regionMatch = activeRegions.has(m.region);
         const searchMatch = !query || m.name.toLowerCase().includes(query) || m.address.toLowerCase().includes(query);
-        const visible = regionMatch && searchMatch;
 
-        if (visible) {
+        if (searchMatch) {
           markersLayer.addLayer(marker);
           visibleCount++;
         } else {
@@ -563,9 +542,8 @@ const regions = [
       listDiv.innerHTML = '';
 
       const filtered = museums.filter(m => {
-        const regionMatch = activeRegions.has(m.region);
         const searchMatch = !query || m.name.toLowerCase().includes(query) || m.address.toLowerCase().includes(query);
-        return regionMatch && searchMatch;
+        return searchMatch;
       });
 
       filtered.forEach(m => {
@@ -606,10 +584,8 @@ const regions = [
       sidebar.classList.toggle('collapsed');
     });
 
-    // Start collapsed on mobile
-    if (window.innerWidth < 768) {
-      sidebar.classList.add('collapsed');
-    }
+    // Start collapsed by default
+    sidebar.classList.add('collapsed');
   </script>
 </body>
 </html>
