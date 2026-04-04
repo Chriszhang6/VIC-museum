@@ -259,6 +259,11 @@
 
   <div id="map"></div>
 
+  <div id="language-switcher" style="position:fixed; top:14px; right:14px; z-index:1001; display:flex; gap:8px;">
+    <button id="lang-en" class="lang-btn" style="padding:8px 12px; border:1.5px solid #333; background:white; border-radius:4px; cursor:pointer; font-size:12px; font-weight:500; color:#333;">EN</button>
+    <button id="lang-zh" class="lang-btn active" style="padding:8px 12px; border:1.5px solid #333; background:#333; color:white; border-radius:4px; cursor:pointer; font-size:12px; font-weight:500;">中文</button>
+  </div>
+
   <div id="sidebar">
     <h1>Australia Heritage</h1>
     <p class="subtitle">澳大利亚历史建筑与博物馆地图</p>
@@ -276,37 +281,82 @@
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
+    // Language state
+    let currentLanguage = 'zh';
+    let currentOpenMarker = null; // Track currently open marker
+
+    // Language switcher
+    document.getElementById('lang-en').addEventListener('click', function() {
+      currentLanguage = 'en';
+      this.style.background = '#333';
+      this.style.color = 'white';
+      document.getElementById('lang-zh').style.background = 'white';
+      document.getElementById('lang-zh').style.color = '#333';
+      refreshUI();
+    });
+
+    document.getElementById('lang-zh').addEventListener('click', function() {
+      currentLanguage = 'zh';
+      this.style.background = '#333';
+      this.style.color = 'white';
+      document.getElementById('lang-en').style.background = 'white';
+      document.getElementById('lang-en').style.color = '#333';
+      refreshUI();
+    });
+
+    function refreshUI() {
+      // Update sidebar title and label
+      document.querySelector('#sidebar h1').textContent = currentLanguage === 'en' ? 'Victoria Heritage' : 'Australia Heritage';
+      document.querySelector('#sidebar .subtitle').textContent = currentLanguage === 'en' ? 'Historic Buildings of Victoria, Australia' : '澳大利亚历史建筑与博物馆地图';
+      document.querySelector('#search-input').placeholder = currentLanguage === 'en' ? 'Search museums & historic places...' : 'Search museums & historic places...';
+      document.querySelector('#museum-count').textContent = currentLanguage === 'en' ? `${document.querySelector('#museum-list').children.length} museums` : `${document.querySelector('#museum-list').children.length} of ${museums.length} museums`;
+      document.querySelector('.museum-list-section h3').textContent = currentLanguage === 'en' ? 'Museums' : 'Museums';
+      
+      // Close and reopen any open popups to update description
+      if (currentOpenMarker) {
+        currentOpenMarker.closePopup();
+        // Reopen immediately with updated language
+        setTimeout(() => {
+          if (currentOpenMarker) {
+            currentOpenMarker.openPopup();
+          }
+        }, 50);
+      }
+    }
+</script>
+  <script>
 const museums = [
   // ===== Victoria (VIC) =====
-  {name:"Old Treasury Building",lat:-37.8129,lng:144.9722,address:"20 Spring Street, East Melbourne VIC 3002",description:"展示墨尔本淘金热时期历史，包括建筑本身的地下金库。",link:"https://www.oldtreasurybuilding.org.au/",region:"VIC"},
-  {name:"Sovereign Hill",lat:-37.5736,lng:143.8563,address:"Bradshaw Street, Ballarat VIC 3350",description:"澳大利亚最著名的户外博物馆，重现1850年代淘金热时期的Ballarat。",link:"https://sovereignhill.com.au/",region:"VIC"},
-  {name:"Eureka Centre",lat:-37.5634,lng:143.8621,address:"102 Stawell Street South, Ballarat East VIC 3350",description:"纪念1854年Eureka起义，展示澳大利亚民主发展史。",link:"https://www.ballarat.vic.gov.au/",region:"VIC"},
-  {name:"Golden Dragon Museum",lat:-36.7588,lng:144.2801,address:"1-11 Bridge Street, Bendigo VIC 3550",description:"展示Bendigo华人社区历史，包括世界最古老的帝国龙Loong。",link:"https://goldendragonmuseum.org/",region:"VIC"},
-  {name:"Bendigo Tramways",lat:-36.7620,lng:144.2786,address:"1 Tramways Way, Bendigo VIC 3550",description:"澳大利亚最古老的运营有轨电车系统之一。",link:"https://bendigotramways.com/",region:"VIC"},
-  {name:"National Wool Museum",lat:-38.1450,lng:144.3568,address:"105 Brougham Street, Geelong VIC 3220",description:"澳大利亚唯一的羊毛博物馆。",link:"https://www.geelongaustralia.com.au/nwm/",region:"VIC"},
-  {name:"Flagstaff Hill Maritime Village",lat:-38.3833,lng:142.4868,address:"89 Merri Street, Warrnambool VIC 3280",description:"户外海事博物馆，展示沉船历史和早期港口生活。",link:"https://flagstaffhill.com.au/",region:"VIC"},
-  {name:"Beechworth Historic Precinct",lat:-36.3589,lng:146.6859,address:"Beechworth VIC 3747",description:"维多利亚州保存最完好的淘金热城镇之一，包括Ned Kelly受审的法院。",link:"https://courthouse.explorebeechworth.com.au/",region:"VIC"},
-  {name:"Swan Hill Pioneer Settlement",lat:-35.3478,lng:143.5583,address:"Monash Drive, Swan Hill VIC 3585",description:"澳大利亚最重要的户外博物馆之一，展示墨累河地区的历史。",link:"https://www.pioneersettlement.com.au/Visit/By-Day",region:"VIC"},
-  {name:"Como House & Garden",lat:-37.8398,lng:145.0127,address:"Corner Williams Road & Lechlade Avenue, South Yarra VIC 3141",description:"建于1847年的殖民时期豪宅，融合澳大利亚摄政式和意大利风格建筑，拥有精美花园和室内陈设。",link:"https://www.nationaltrust.org.au/places/como-house/",region:"VIC"},
-  {name:"Rippon Lea Estate",lat:-37.8878,lng:145.0018,address:"192 Hotham Street, Elsternwick VIC 3185",description:"1868年建造的维多利亚时期宏伟庄园，占地14英亩，拥有华丽宅邸、湖泊、蕨类温室和花园。",link:"https://www.nationaltrust.org.au/places/rippon-lea-estate/",region:"VIC"},
-  {name:"Labassa",lat:-37.8731,lng:145.0198,address:"2 Manor Grove, Caulfield North VIC 3161",description:"1890年代华丽的维多利亚豪宅，以精美的彩色玻璃窗、手绘天花板和精致的石膏装饰闻名。",link:"https://www.nationaltrust.org.au/places/labassa/",region:"VIC"},
-  {name:"Werribee Mansion",lat:-37.8975,lng:144.6827,address:"K Road, Werribee VIC 3030",description:"1870年代意大利风格豪宅，由牧场大亨Chirnside家族建造，坐落于Werribee公园花园和州立玫瑰园之中。",link:"https://www.parks.vic.gov.au/places-to-see/parks/werribee-park/things-to-do/werribee-park-mansion",region:"VIC"},
-  {name:"Captain Cook's Cottage",lat:-37.8142,lng:144.9836,address:"Fitzroy Gardens, Wellington Parade, East Melbourne VIC 3002",description:"库克船长父母于1755年在英国约克郡建造的故居，1934年拆卸后运至墨尔本重建于费兹罗花园中。",link:"https://whatson.melbourne.vic.gov.au/things-to-do/cooks-cottage",region:"VIC"},
-  {name:"La Trobe's Cottage",lat:-37.8396,lng:144.9730,address:"Dallas Brooks Drive, Melbourne VIC 3004",description:"维多利亚州首任副总督Charles La Trobe的故居，1839年建造，是墨尔本最古老的建筑之一。",link:"https://www.nationaltrust.org.au/places/la-trobes-cottage/",region:"VIC"},
-  {name:"Barwon Park Mansion",lat:-38.0023,lng:144.0177,address:"105 Inverleigh Road, Winchelsea VIC 3240",description:"1869至1871年建造的42间房青石豪宅，由牧场主Thomas Austin夫妇建造，气势恢宏。",link:"https://www.nationaltrust.org.au/places/barwon-park/",region:"VIC"},
-  {name:"Gulf Station",lat:-37.6880,lng:145.4430,address:"1029 Melba Highway, Yarra Glen VIC 3775",description:"维多利亚州保存最完整的早期先驱农场之一，展示1850年代至1940年代的乡村农业生活。",link:"https://www.nationaltrust.org.au/places/gulf-station/",region:"VIC"},
-  {name:"McCrae Homestead",lat:-38.3528,lng:144.9205,address:"11 Beverley Road, McCrae VIC 3938",description:"1844年建造的石灰岩住宅，是维多利亚州现存最古老的宅基地之一，采用独特的苏格兰风格设计。",link:"https://www.nationaltrust.org.au/places/mccrae-homestead/",region:"VIC"},
-  {name:"Mooramong",lat:-37.6860,lng:143.3390,address:"Skipton-Lismore Road, Skipton VIC 3360",description:"1930年代装饰艺术风格改造的历史宅基地，由好莱坞电影制片人Claude McKenzie与其妻子Doris增添了独特的时代魅力。",link:"https://www.nationaltrust.org.au/places/mooramong/",region:"VIC"},
-  {name:"Barwon Grange",lat:-38.1460,lng:144.3540,address:"71-73 Fernleigh Street, Newtown VIC 3220",description:"1850年代意大利风格河畔住宅，是Geelong地区唯一幸存的早期河滨别墅。",link:"https://www.nationaltrust.org.au/places/barwon-grange/",region:"VIC"},
-  {name:"The Heights",lat:-38.1380,lng:144.3480,address:"140 Aphrasia Street, Newtown VIC 3220",description:"Geelong地区淘金热之前保存最完好的住宅，维多利亚州最大的预制铁房屋，建于1850年代。",link:"https://www.nationaltrust.org.au/places/the-heights/",region:"VIC"},
-  {name:"Portable Iron Houses",lat:-37.8385,lng:144.9577,address:"399 Coventry Street, South Melbourne VIC 3205",description:"三栋1850年代淘金热时期从英国运来的预制铁屋，是极早期预制建筑的罕见实物例证。",link:"https://www.nationaltrust.org.au/places/portable-iron-houses/",region:"VIC"},
-  {name:"Rupertswood Mansion",lat:-37.5740,lng:144.7260,address:"Rupertswood Boulevard, Sunbury VIC 3429",description:"1870年代意大利风格豪宅，因与板球'灰烬杯'(The Ashes)起源故事密切相关而闻名于世。",link:"https://collections.museumsvictoria.com.au/articles/12361",region:"VIC"},
-  {name:"Mont De Lancey Heritage Homestead",lat:-37.7870,lng:145.4310,address:"71 Wellington Street, Wandin North VIC 3139",description:"1880年代先驱者宅基地，展示Yarra Valley地区早期定居者的乡村生活和手工艺。",link:"https://montdelancey.org.au/",region:"VIC"},
-  {name:"Government House Melbourne",lat:-37.8413,lng:144.9756,address:"Government House Drive, Melbourne VIC 3004",description:"建于1876年的意大利风格建筑，是维多利亚州总督官邸，也是澳大利亚最宏伟的政府建筑之一。",link:"https://www.governor.vic.gov.au/history-government-house",region:"VIC"},
-  {name:"Tasma Terrace (National Trust HQ)",lat:-37.8143,lng:144.9666,address:"267 Collins Street, Melbourne VIC 3000",description:"1878年建造的维多利亚时期排屋群，是墨尔本市中心仅存的此类建筑，现为澳大利亚国家信托(维州)总部。",link:"https://www.nationaltrust.org.au/places/tasma-terrace/",region:"VIC"},
-  {name:"Kyneton Museum",lat:-37.2443,lng:144.4472,address:"67 Piper Street, Kyneton VIC 3444",description:"收藏于1856年建造的前新南威尔士银行分行建筑中。包括银行经理住宅、青石马厩、马车和历史农业设备收藏。",link:"https://www.mrsc.vic.gov.au/See-Do/Arts-Culture/Kyneton-Museum",region:"VIC"},
+  {name:"Old Treasury Building",lat:-37.8129,lng:144.9722,address:"20 Spring Street, East Melbourne VIC 3002",description:{zh:"展示墨尔本淘金热时期历史，包括建筑本身的地下金库。",en:"Displays the history of Melbourne's Gold Rush era, including the building's underground vault."},link:"https://www.oldtreasurybuilding.org.au/",region:"VIC"},
+  {name:"Sovereign Hill",lat:-37.5736,lng:143.8563,address:"Bradshaw Street, Ballarat VIC 3350",description:{zh:"澳大利亚最著名的户外博物馆，重现1850年代淘金热时期的Ballarat。",en:"Australia's most famous outdoor museum, recreating the Gold Rush era of 1850s Ballarat."},link:"https://sovereignhill.com.au/",region:"VIC"},
+  {name:"Eureka Centre",lat:-37.5634,lng:143.8621,address:"102 Stawell Street South, Ballarat East VIC 3350",description:{zh:"纪念1854年Eureka起义，展示澳大利亚民主发展史。",en:"Commemorates the 1854 Eureka Rebellion, showcasing the history of Australian democracy."},link:"https://www.ballarat.vic.gov.au/",region:"VIC"},
+  {name:"Golden Dragon Museum",lat:-36.7588,lng:144.2801,address:"1-11 Bridge Street, Bendigo VIC 3550",description:{zh:"展示Bendigo华人社区历史，包括世界最古老的帝国龙Loong。",en:"Showcases the history of Bendigo's Chinese community, featuring the world's oldest imperial Dragon Loong."},link:"https://goldendragonmuseum.org/",region:"VIC"},
+  {name:"Bendigo Tramways",lat:-36.7620,lng:144.2786,address:"1 Tramways Way, Bendigo VIC 3550",description:{zh:"澳大利亚最古老的运营有轨电车系统之一。",en:"One of Australia's oldest operating electric tramway systems."},link:"https://bendigotramways.com/",region:"VIC"},
+  {name:"National Wool Museum",lat:-38.1450,lng:144.3568,address:"105 Brougham Street, Geelong VIC 3220",description:{zh:"澳大利亚唯一的羊毛博物馆。",en:"Australia's only wool museum."},link:"https://www.geelongaustralia.com.au/nwm/",region:"VIC"},
+  {name:"Flagstaff Hill Maritime Village",lat:-38.3833,lng:142.4868,address:"89 Merri Street, Warrnambool VIC 3280",description:{zh:"户外海事博物馆，展示沉船历史和早期港口生活。",en:"Outdoor maritime museum showcasing shipwreck history and early port life."},link:"https://flagstaffhill.com.au/",region:"VIC"},
+  {name:"Beechworth Historic Precinct",lat:-36.3589,lng:146.6859,address:"Beechworth VIC 3747",description:{zh:"维多利亚州保存最完好的淘金热城镇之一，包括Ned Kelly受审的法院。",en:"One of Victoria's best-preserved gold rush towns, featuring the courthouse where Ned Kelly was tried."},link:"https://courthouse.explorebeechworth.com.au/",region:"VIC"},
+  {name:"Swan Hill Pioneer Settlement",lat:-35.3478,lng:143.5583,address:"Monash Drive, Swan Hill VIC 3585",description:{zh:"澳大利亚最重要的户外博物馆之一，展示墨累河地区的历史。",en:"One of Australia's most important outdoor museums, showcasing the history of the Murray River region."},link:"https://www.pioneersettlement.com.au/Visit/By-Day",region:"VIC"},
+  {name:"Como House & Garden",lat:-37.8398,lng:145.0127,address:"Corner Williams Road & Lechlade Avenue, South Yarra VIC 3141",description:{zh:"建于1847年的殖民时期豪宅，融合澳大利亚摄政式和意大利风格建筑，拥有精美花园和室内陈设。",en:"Built in 1847, this colonial mansion blends Australian Regency and Italian architecture, featuring exquisite gardens and furnishings."},link:"https://www.nationaltrust.org.au/places/como-house/",region:"VIC"},
+  {name:"Rippon Lea Estate",lat:-37.8878,lng:145.0018,address:"192 Hotham Street, Elsternwick VIC 3185",description:{zh:"1868年建造的维多利亚时期宏伟庄园，占地14英亩，拥有华丽宅邸、湖泊、蕨类温室和花园。",en:"A magnificent Victorian estate built in 1868, spanning 14 acres with grand mansion, lake, fern conservatory and gardens."},link:"https://www.nationaltrust.org.au/places/rippon-lea-estate/",region:"VIC"},
+  {name:"Labassa",lat:-37.8731,lng:145.0198,address:"2 Manor Grove, Caulfield North VIC 3161",description:{zh:"1890年代华丽的维多利亚豪宅，以精美的彩色玻璃窗、手绘天花板和精致的石膏装饰闻名。",en:"An ornate Victorian mansion from the 1890s, renowned for its exquisite stained glass, hand-painted ceilings and decorative plaster work."},link:"https://www.nationaltrust.org.au/places/labassa/",region:"VIC"},
+  {name:"Werribee Mansion",lat:-37.8975,lng:144.6827,address:"K Road, Werribee VIC 3030",description:{zh:"1870年代意大利风格豪宅，由牧场大亨Chirnside家族建造，坐落于Werribee公园花园和州立玫瑰园之中。",en:"An Italian-style mansion from the 1870s, built by the wealthy Chirnside family and set within Werribee Park gardens and state rose garden."},link:"https://www.parks.vic.gov.au/places-to-see/parks/werribee-park/things-to-do/werribee-park-mansion",region:"VIC"},
+  {name:"Captain Cook's Cottage",lat:-37.8142,lng:144.9836,address:"Fitzroy Gardens, Wellington Parade, East Melbourne VIC 3002",description:{zh:"库克船长父母于1755年在英国约克郡建造的故居，1934年拆卸后运至墨尔本重建于费兹罗花园中。",en:"The childhood home of Captain Cook's parents built in Yorkshire in 1755, dismantled and relocated to Fitzroy Gardens Melbourne in 1934."},link:"https://whatson.melbourne.vic.gov.au/things-to-do/cooks-cottage",region:"VIC"},
+  {name:"La Trobe's Cottage",lat:-37.8396,lng:144.9730,address:"Dallas Brooks Drive, Melbourne VIC 3004",description:{zh:"维多利亚州首任副总督Charles La Trobe的故居，1839年建造，是墨尔本最古老的建筑之一。",en:"The residence of Victoria's first Lieutenant Governor Charles La Trobe, built in 1839 and one of Melbourne's oldest buildings."},link:"https://www.nationaltrust.org.au/places/la-trobes-cottage/",region:"VIC"},
+  {name:"Barwon Park Mansion",lat:-38.0023,lng:144.0177,address:"105 Inverleigh Road, Winchelsea VIC 3240",description:{zh:"1869至1871年建造的42间房青石豪宅，由牧场主Thomas Austin夫妇建造，气势恢宏。",en:"A 42-room bluestone mansion built between 1869-1871 by wealthy pastoralist Thomas Austin and his wife, an imposing structure."},link:"https://www.nationaltrust.org.au/places/barwon-park/",region:"VIC"},
+  {name:"Gulf Station",lat:-37.6880,lng:145.4430,address:"1029 Melba Highway, Yarra Glen VIC 3775",description:{zh:"维多利亚州保存最完整的早期先驱农场之一，展示1850年代至1940年代的乡村农业生活。",en:"One of Victoria's best-preserved early pioneer farms, showcasing rural agricultural life from the 1850s to 1940s."},link:"https://www.nationaltrust.org.au/places/gulf-station/",region:"VIC"},
+  {name:"McCrae Homestead",lat:-38.3528,lng:144.9205,address:"11 Beverley Road, McCrae VIC 3938",description:{zh:"1844年建造的石灰岩住宅，是维多利亚州现存最古老的宅基地之一，采用独特的苏格兰风格设计。",en:"A limestone residence built in 1844, one of Victoria's oldest homesteads, featuring unique Scottish-style design."},link:"https://www.nationaltrust.org.au/places/mccrae-homestead/",region:"VIC"},
+  {name:"Mooramong",lat:-37.6860,lng:143.3390,address:"Skipton-Lismore Road, Skipton VIC 3360",description:{zh:"1930年代装饰艺术风格改造的历史宅基地，由好莱坞电影制片人Claude McKenzie与其妻子Doris增添了独特的时代魅力。",en:"A historic homestead renovated in 1930s Art Deco style by Hollywood film producer Claude McKenzie and his wife Doris."},link:"https://www.nationaltrust.org.au/places/mooramong/",region:"VIC"},
+  {name:"Barwon Grange",lat:-38.1460,lng:144.3540,address:"71-73 Fernleigh Street, Newtown VIC 3220",description:{zh:"1850年代意大利风格河畔住宅，是Geelong地区唯一幸存的早期河滨别墅。",en:"An Italian-style riverside residence from the 1850s, the only surviving early riverfront villa in the Geelong district."},link:"https://www.nationaltrust.org.au/places/barwon-grange/",region:"VIC"},
+  {name:"The Heights",lat:-38.1380,lng:144.3480,address:"140 Aphrasia Street, Newtown VIC 3220",description:{zh:"Geelong地区淘金热之前保存最完好的住宅，维多利亚州最大的预制铁房屋，建于1850年代。",en:"Geelong's best-preserved pre-gold rush residence, Victoria's largest prefabricated iron house, built in the 1850s."},link:"https://www.nationaltrust.org.au/places/the-heights/",region:"VIC"},
+  {name:"Portable Iron Houses",lat:-37.8385,lng:144.9577,address:"399 Coventry Street, South Melbourne VIC 3205",description:{zh:"三栋1850年代淘金热时期从英国运来的预制铁屋，是极早期预制建筑的罕见实物例证。",en:"Three prefabricated iron houses imported from England during the 1850s gold rush, rare examples of early prefabrication."},link:"https://www.nationaltrust.org.au/places/portable-iron-houses/",region:"VIC"},
+  {name:"Rupertswood Mansion",lat:-37.5740,lng:144.7260,address:"Rupertswood Boulevard, Sunbury VIC 3429",description:{zh:"1870年代意大利风格豪宅，因与板球'灰烬杯'(The Ashes)起源故事密切相关而闻名于世。",en:"An Italian-style mansion from the 1870s, famous for its connection to the origins of cricket's coveted 'The Ashes'."},link:"https://collections.museumsvictoria.com.au/articles/12361",region:"VIC"},
+  {name:"Mont De Lancey Heritage Homestead",lat:-37.7870,lng:145.4310,address:"71 Wellington Street, Wandin North VIC 3139",description:{zh:"1880年代先驱者宅基地，展示Yarra Valley地区早期定居者的乡村生活和手工艺。",en:"An 1880s pioneer homestead showcasing rural life and crafts of early settlers in the Yarra Valley."},link:"https://montdelancey.org.au/",region:"VIC"},
+  {name:"Government House Melbourne",lat:-37.8413,lng:144.9756,address:"Government House Drive, Melbourne VIC 3004",description:{zh:"建于1876年的意大利风格建筑，是维多利亚州总督官邸，也是澳大利亚最宏伟的政府建筑之一。",en:"Built in 1876, this Italian-style building serves as the Governor of Victoria's official residence and is one of Australia's most impressive government buildings."},link:"https://www.governor.vic.gov.au/history-government-house",region:"VIC"},
+  {name:"Tasma Terrace (National Trust HQ)",lat:-37.8143,lng:144.9666,address:"267 Collins Street, Melbourne VIC 3000",description:{zh:"1878年建造的维多利亚时期排屋群，是墨尔本市中心仅存的此类建筑，现为澳大利亚国家信托(维州)总部。",en:"A group of Victorian terrace houses built in 1878, the only surviving example in Melbourne's CBD, now home to the National Trust's Victoria headquarters."},link:"https://www.nationaltrust.org.au/places/tasma-terrace/",region:"VIC"},
+  {name:"Kyneton Museum",lat:-37.2443,lng:144.4472,address:"67 Piper Street, Kyneton VIC 3444",description:{zh:"收藏于1856年建造的前新南威尔士银行分行建筑中。包括银行经理住宅、青石马厩、马车和历史农业设备收藏。",en:"Located in a former NSW Bank branch building from 1856, featuring the bank manager's residence, bluestone stables, carriages and historical farm equipment."},link:"https://www.mrsc.vic.gov.au/See-Do/Arts-Culture/Kyneton-Museum",region:"VIC"},
 
-  // ===== New South Wales (NSW) - Historic Houses, Mansions & Estates =====
+  /* ===== 其他州已注释 - Other States Commented Out =====
+  // New South Wales (NSW), Queens land (QLD), South Australia (SA), Western Australia (WA), Tasmania (TAS), Northern Territory (NT), Australian Capital Territory (ACT) data has been commented out to focus on Victorian heritage sites.
   {name:"Vaucluse House",lat:-33.8606,lng:151.2787,address:"Wentworth Road, Vaucluse NSW 2030",description:"19世纪殖民时期庄园，为政治家William Charles Wentworth的故居，拥有宏伟的建筑和历史花园。由Museums of History NSW管理。",link:"https://museums.history.nsw.gov.au/venue/vaucluse-house/",region:"NSW"},
   {name:"Elizabeth Bay House",lat:-33.8742,lng:151.2256,address:"7 Onslow Avenue, Elizabeth Bay NSW 2011",description:"1835-1839年建造的摄政时期风格豪宅，被誉为澳大利亚殖民地建筑的最佳典范之一，拥有壮观的椭圆形大厅。",link:"https://museums.history.nsw.gov.au/venue/elizabeth-bay-house/",region:"NSW"},
   {name:"Old Government House",lat:-33.8148,lng:151.0033,address:"Parramatta Park, Pitt Street, Parramatta NSW 2150",description:"澳大利亚最古老的公共建筑，曾为早期新南威尔士州总督的官邸，位于世界遗产名录的Parramatta公园内。",link:"https://www.nationaltrust.org.au/places/old-government-house/",region:"NSW"},
@@ -405,6 +455,7 @@ const museums = [
   {name:"St John the Baptist Church",lat:-35.2830,lng:149.1350,address:"43 Constitution Avenue, Reid ACT 2612",description:"1845年建造的堪培拉最古老教堂，哥特复兴风格砂岩建筑，内部保存殖民时期碑铭和Campbell家族纪念碑。",link:"https://www.stjohnscanberra.org/",region:"ACT"},
   {name:"Old Parliament House Gardens",lat:-35.3015,lng:149.1280,address:"King George Terrace, Parkes ACT 2600",description:"1920-1930年代为议员建造的遗产花园，拥有5000多株玫瑰和宏伟橡树，2004年修复后免费向公众开放。",link:"https://www.nca.gov.au/",region:"ACT"},
   {name:"Yarralumla Play Station / Westbourne House",lat:-35.3100,lng:149.0900,address:"3 Bentham Street, Yarralumla ACT 2600",description:"堪培拉最古老的建筑之一Westbourne House所在，现为社区活动和遗产展示场所。",link:"https://www.yarralumlaplaystation.com.au/",region:"ACT"}
+  */ // End of commented-out non-VIC states
 ];
 
 const regions = [
@@ -446,9 +497,10 @@ const regions = [
       return regionColorMap[region] || '#999';
     }
 
-    // --- Fetch preview image from Microlink API ---
+    // --- Fetch preview image from Microlink API or Open Graph tags ---
     async function fetchPreviewImage(url, targetElement) {
       try {
+        // First, try Microlink API
         const response = await fetch(`https://api.microlink.io?url=${encodeURIComponent(url)}`);
         const data = await response.json();
         
@@ -456,15 +508,50 @@ const regions = [
           const imageUrl = data.data.image.url;
           targetElement.innerHTML = `<img src="${imageUrl}" alt="Preview" onerror="this.parentElement.innerHTML='Preview unavailable'">`;
           targetElement.classList.remove('preview-loading');
-        } else {
-          targetElement.innerHTML = 'No preview available';
-          targetElement.classList.remove('preview-loading');
+          return;
         }
       } catch (error) {
-        console.error('Failed to fetch preview:', error);
-        targetElement.innerHTML = 'Preview unavailable';
-        targetElement.classList.remove('preview-loading');
+        console.error('Microlink API failed:', error);
       }
+
+      // Fallback: Try to fetch Open Graph og:image from the website directly
+      try {
+        const pageResponse = await fetch(url);
+        const pageText = await pageResponse.text();
+        
+        // Extract og:image from meta tags
+        const ogImageMatch = pageText.match(/<meta\s+property="og:image"\s+content="([^"]+)"/);
+        if (ogImageMatch && ogImageMatch[1]) {
+          const imageUrl = ogImageMatch[1];
+          targetElement.innerHTML = `<img src="${imageUrl}" alt="Preview" onerror="this.parentElement.innerHTML='Preview unavailable'">`;
+          targetElement.classList.remove('preview-loading');
+          return;
+        }
+      } catch (error) {
+        console.error('Failed to fetch Open Graph image:', error);
+      }
+
+      // Additional fallback: Try using CORS proxy
+      try {
+        const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
+        const pageResponse = await fetch(proxyUrl);
+        const pageText = await pageResponse.text();
+        
+        // Extract og:image from meta tags
+        const ogImageMatch = pageText.match(/<meta\s+property="og:image"\s+content="([^"]+)"/);
+        if (ogImageMatch && ogImageMatch[1]) {
+          const imageUrl = ogImageMatch[1];
+          targetElement.innerHTML = `<img src="${imageUrl}" alt="Preview" onerror="this.parentElement.innerHTML='Preview unavailable'">`;
+          targetElement.classList.remove('preview-loading');
+          return;
+        }
+      } catch (error) {
+        console.error('CORS proxy failed:', error);
+      }
+
+      // If all methods fail, show unavailable
+      targetElement.innerHTML = 'No preview available';
+      targetElement.classList.remove('preview-loading');
     }
 
     // --- Markers ---
@@ -482,23 +569,41 @@ const regions = [
         fillOpacity: 0.85
       });
 
-      marker.bindPopup(`
-        <div class="popup-card">
-          <span class="popup-region" style="background:${color}">${regionFullNameMap[m.region] || m.region}</span>
-          <h2>${m.name}</h2>
-          <div class="popup-address">${m.address}</div>
-          <div class="popup-preview preview-loading" data-url="${m.link}">加载中...</div>
-          <div class="popup-desc">${m.description}</div>
-          <a class="popup-link" href="${m.link}" target="_blank" rel="noopener" title="Visit Website">↗</a>
-        </div>
-      `, { maxWidth: 300 });
+      // Helper function to get description based on current language
+      const getDescription = () => {
+        if (typeof m.description === 'object') {
+          return m.description[currentLanguage] || m.description.zh || m.description.en;
+        }
+        return m.description;
+      };
 
-      // Load preview image when popup is opened
+      marker.bindPopup(function() {
+        return `
+          <div class="popup-card">
+            <span class="popup-region" style="background:${color}">${regionFullNameMap[m.region] || m.region}</span>
+            <h2>${m.name}</h2>
+            <div class="popup-address">${m.address}</div>
+            <div class="popup-preview preview-loading" data-url="${m.link}">加载中...</div>
+            <div class="popup-desc">${getDescription()}</div>
+            <a class="popup-link" href="${m.link}" target="_blank" rel="noopener" title="Visit Website">↗</a>
+          </div>
+        `;
+      }, { maxWidth: 300 });
+
+      // Load preview image when popup is opened, and track current marker
       marker.on('popupopen', () => {
+        currentOpenMarker = marker; // Track this marker as currently open
         const previewDiv = document.querySelector(`[data-url="${m.link}"]`);
         if (previewDiv && !previewDiv.dataset.loaded) {
           fetchPreviewImage(m.link, previewDiv);
           previewDiv.dataset.loaded = 'true';
+        }
+      });
+
+      // Clear tracking when popup is closed
+      marker.on('popupclose', () => {
+        if (currentOpenMarker === marker) {
+          currentOpenMarker = null;
         }
       });
 
