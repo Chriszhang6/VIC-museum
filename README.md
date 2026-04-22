@@ -23,8 +23,12 @@ An interactive web map showcasing museums and historic buildings across Victoria
 
 ```
 VIC-museum/
-├── index.html                    # Main application file
-├── FEATURE_DOCUMENTATION.md      # Technical documentation of language switching feature
+├── index.html                    # Main application file (contains data + UI logic)
+├── images/                       # Local heritage photos used by markers/popups
+├── run-server.py                 # Optional local HTTP server (recommended for local testing)
+├── start-server.sh               # Optional quick-start shell script
+├── LOCAL_SERVER.md               # Local server usage guide
+├── FEATURE_DOCUMENTATION.md      # Language switching feature notes
 └── README.md                     # This file
 ```
 
