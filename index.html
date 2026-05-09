@@ -485,8 +485,8 @@
   </div>
 
   <div id="sidebar">
-    <h1>Victoria Heritage</h1>
-    <p class="subtitle">Historic Buildings of Victoria, Australia</p>
+    <h1>Australia Heritage</h1>
+    <p class="subtitle">Historic Buildings & Museums Across Australia</p>
 
     <input type="text" id="search-input" placeholder="Search museums & historic places..." />
 
@@ -541,8 +541,8 @@
 
     function refreshUI() {
       // Update sidebar title and label
-      document.querySelector('#sidebar h1').textContent = currentLanguage === 'en' ? 'Victoria Heritage' : 'Australia Heritage';
-      document.querySelector('#sidebar .subtitle').textContent = currentLanguage === 'en' ? 'Historic Buildings of Victoria, Australia' : '澳大利亚历史建筑与博物馆地图';
+      document.querySelector('#sidebar h1').textContent = currentLanguage === 'en' ? 'Australia Heritage' : 'Australia Heritage';
+      document.querySelector('#sidebar .subtitle').textContent = currentLanguage === 'en' ? 'Historic Buildings & Museums Across Australia' : '澳大利亚历史建筑与博物馆地图';
       document.querySelector('#search-input').placeholder = currentLanguage === 'en' ? 'Search museums & historic places...' : 'Search museums & historic places...';
       document.querySelector('#museum-count').textContent = currentLanguage === 'en' ? `${document.querySelector('#museum-list').children.length} museums` : `${document.querySelector('#museum-list').children.length} of ${museums.length} museums`;
       document.querySelector('.museum-list-section h3').textContent = currentLanguage === 'en' ? 'Museums' : 'Museums';
