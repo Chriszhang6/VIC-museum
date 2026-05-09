@@ -8,6 +8,69 @@
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
+    :root {
+      color-scheme: light dark;
+      --bg-primary: rgba(255,255,255,0.92);
+      --bg-card: #ffffff;
+      --bg-hover: #f5f5f7;
+      --bg-input: #ffffff;
+      --bg-preview: #f0f0f2;
+      --text-primary: #1d1d1f;
+      --text-secondary: #6e6e73;
+      --text-tertiary: #aeaeb2;
+      --border: rgba(0,0,0,0.08);
+      --border-input: rgba(0,0,0,0.12);
+      --shadow: 0 1px 6px rgba(0,0,0,0.08);
+      --shadow-lg: 0 4px 24px rgba(0,0,0,0.1);
+      --accent: #0071e3;
+      --accent-bg: rgba(0,113,227,0.08);
+      --popup-bg: #ffffff;
+      --link-border: rgba(0,0,0,0.2);
+      --link-hover-bg: #f5f5f7;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --bg-primary: rgba(28,28,30,0.92);
+        --bg-card: #2c2c2e;
+        --bg-hover: #3a3a3c;
+        --bg-input: #2c2c2e;
+        --bg-preview: #3a3a3c;
+        --text-primary: #f5f5f7;
+        --text-secondary: #98989d;
+        --text-tertiary: #636366;
+        --border: rgba(255,255,255,0.08);
+        --border-input: rgba(255,255,255,0.12);
+        --shadow: 0 1px 6px rgba(0,0,0,0.3);
+        --shadow-lg: 0 4px 24px rgba(0,0,0,0.4);
+        --accent: #0a84ff;
+        --accent-bg: rgba(10,132,255,0.15);
+        --popup-bg: #2c2c2e;
+        --link-border: rgba(255,255,255,0.2);
+        --link-hover-bg: #3a3a3c;
+      }
+    }
+
+    [data-theme="dark"] {
+      --bg-primary: rgba(28,28,30,0.92);
+      --bg-card: #2c2c2e;
+      --bg-hover: #3a3a3c;
+      --bg-input: #2c2c2e;
+      --bg-preview: #3a3a3c;
+      --text-primary: #f5f5f7;
+      --text-secondary: #98989d;
+      --text-tertiary: #636366;
+      --border: rgba(255,255,255,0.08);
+      --border-input: rgba(255,255,255,0.12);
+      --shadow: 0 1px 6px rgba(0,0,0,0.3);
+      --shadow-lg: 0 4px 24px rgba(0,0,0,0.4);
+      --accent: #0a84ff;
+      --accent-bg: rgba(10,132,255,0.15);
+      --popup-bg: #2c2c2e;
+      --link-border: rgba(255,255,255,0.2);
+      --link-hover-bg: #3a3a3c;
+    }
+
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       height: 100vh;
@@ -25,86 +88,103 @@
       position: fixed;
       top: 0;
       left: 0;
-      width: 300px;
+      width: 320px;
       height: 100vh;
-      background: rgba(255,255,255,0.95);
-      backdrop-filter: blur(8px);
+      background: var(--bg-primary);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
       z-index: 1000;
       overflow-y: auto;
-      padding: 20px 16px;
-      box-shadow: 2px 0 12px rgba(0,0,0,0.1);
-      transition: transform 0.3s ease;
+      padding: 24px 16px;
+      padding-top: calc(24px + env(safe-area-inset-top));
+      padding-left: calc(16px + env(safe-area-inset-left));
+      border-right: 1px solid var(--border);
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     #sidebar.collapsed {
-      transform: translateX(-300px);
+      transform: translateX(-320px);
     }
 
     #sidebar h1 {
       font-size: 20px;
-      margin-bottom: 4px;
-      color: #2c3e50;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+      margin-bottom: 2px;
+      color: var(--text-primary);
     }
 
     #sidebar .subtitle {
       font-size: 13px;
-      color: #7f8c8d;
-      margin-bottom: 16px;
+      color: var(--text-secondary);
+      margin-bottom: 20px;
     }
 
     /* Search */
     #search-input {
       width: 100%;
       padding: 10px 12px;
-      border: 1px solid #ddd;
-      border-radius: 8px;
+      border: 1px solid var(--border-input);
+      border-radius: 10px;
       font-size: 14px;
+      background: var(--bg-input);
+      color: var(--text-primary);
       outline: none;
-      margin-bottom: 14px;
+      margin-bottom: 16px;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    #search-input::placeholder {
+      color: var(--text-tertiary);
     }
 
     #search-input:focus {
-      border-color: #3498db;
-      box-shadow: 0 0 0 2px rgba(52,152,219,0.2);
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-bg);
     }
 
     /* Museum list */
     .museum-list-section h3 {
-      font-size: 13px;
-      color: #95a5a6;
+      font-size: 11px;
+      color: var(--text-tertiary);
       text-transform: uppercase;
-      letter-spacing: 0.5px;
+      letter-spacing: 0.8px;
       margin-bottom: 8px;
+      font-weight: 600;
     }
 
     #museum-count {
       font-size: 12px;
-      color: #95a5a6;
+      color: var(--text-tertiary);
       margin-bottom: 8px;
     }
 
     .museum-item {
       padding: 10px 8px;
-      border-radius: 8px;
+      border-radius: 10px;
       cursor: pointer;
       transition: background 0.15s;
-      border-bottom: 1px solid #f0f0f0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .museum-item:last-child {
+      border-bottom: none;
     }
 
     .museum-item:hover {
-      background: #f8f9fa;
+      background: var(--bg-hover);
     }
 
     .museum-item .museum-name {
       font-size: 14px;
       font-weight: 600;
-      color: #2c3e50;
+      color: var(--text-primary);
       margin-bottom: 2px;
     }
 
     .museum-item .museum-address {
       font-size: 12px;
-      color: #95a5a6;
+      color: var(--text-secondary);
     }
 
     .museum-item .museum-region-dot {
@@ -118,46 +198,96 @@
 
     .museum-item .museum-region {
       font-size: 11px;
-      color: #95a5a6;
+      color: var(--text-tertiary);
     }
 
     /* Toggle button */
     #toggle-btn {
       position: fixed;
-      top: 14px;
-      left: 14px;
+      top: 16px;
+      left: 16px;
       z-index: 1001;
       width: 40px;
       height: 40px;
-      border-radius: 8px;
+      border-radius: 12px;
       border: none;
-      background: rgba(255,255,255,0.95);
-      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+      background: var(--bg-primary);
+      box-shadow: var(--shadow);
       cursor: pointer;
       font-size: 18px;
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: all 0.3s ease;
-      backdrop-filter: blur(8px);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      color: var(--text-primary);
     }
 
     #sidebar:not(.collapsed) ~ #toggle-btn {
-      left: 310px;
-      background: #3498db;
-      color: white;
+      left: 332px;
+    }
+
+    /* Top-right controls */
+    #top-controls {
+      position: fixed;
+      top: 16px;
+      right: 16px;
+      z-index: 1001;
+      display: flex;
+      gap: 6px;
+    }
+
+    .ctrl-btn {
+      height: 36px;
+      min-width: 36px;
+      padding: 0 10px;
+      border: 1px solid var(--border-input);
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      background: var(--bg-primary);
+      color: var(--text-secondary);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      box-shadow: var(--shadow);
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .ctrl-btn:hover {
+      color: var(--text-primary);
+      border-color: var(--text-tertiary);
+    }
+
+    #lang-btn {
+      font-size: 12px;
+      letter-spacing: 0.3px;
+    }
+
+    #theme-btn {
+      font-size: 16px;
     }
 
     /* Popup */
     .leaflet-popup-content-wrapper {
-      border-radius: 12px !important;
+      border-radius: 14px !important;
       padding: 0 !important;
       overflow: hidden;
+      background: var(--popup-bg) !important;
+      box-shadow: var(--shadow-lg) !important;
+    }
+
+    .leaflet-popup-tip {
+      background: var(--popup-bg) !important;
     }
 
     .leaflet-popup-content {
       margin: 0 !important;
-      min-width: 240px;
+      min-width: 260px;
     }
 
     .popup-card {
@@ -166,31 +296,32 @@
 
     .popup-card .popup-region {
       display: inline-block;
-      padding: 2px 8px;
-      border-radius: 12px;
+      padding: 3px 10px;
+      border-radius: 20px;
       font-size: 11px;
       font-weight: 600;
       color: white;
-      margin-bottom: 8px;
+      margin-bottom: 10px;
     }
 
     .popup-card h2 {
       font-size: 16px;
-      color: #2c3e50;
-      margin-bottom: 6px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 4px;
       line-height: 1.3;
     }
 
     .popup-card .popup-address {
       font-size: 12px;
-      color: #7f8c8d;
-      margin-bottom: 8px;
+      color: var(--text-secondary);
+      margin-bottom: 10px;
     }
 
     .popup-card .popup-desc {
       font-size: 13px;
-      color: #555;
-      line-height: 1.5;
+      color: var(--text-secondary);
+      line-height: 1.55;
       margin-bottom: 12px;
     }
 
@@ -198,34 +329,33 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      width: 28px;
-      height: 28px;
-      border: 1.5px solid #333;
-      border-radius: 4px;
-      color: #333;
+      width: 32px;
+      height: 32px;
+      border: 1px solid var(--link-border);
+      border-radius: 8px;
+      color: var(--text-primary);
       text-decoration: none;
       font-size: 16px;
       transition: all 0.2s;
     }
 
     .popup-card .popup-link:hover {
-      background: #f5f5f5;
-      border-color: #000;
+      background: var(--link-hover-bg);
     }
 
     /* Preview Image */
     .popup-preview {
       width: 100%;
-      height: 180px;
-      background: #f0f0f0;
-      border-radius: 8px;
+      height: 160px;
+      background: var(--bg-preview);
+      border-radius: 10px;
       overflow: hidden;
       margin-bottom: 12px;
       display: flex;
       align-items: center;
       justify-content: center;
       font-size: 12px;
-      color: #999;
+      color: var(--text-tertiary);
     }
 
     .popup-preview img {
@@ -239,18 +369,108 @@
     }
 
     @keyframes pulse {
-      0%, 100% { opacity: 0.6; }
+      0%, 100% { opacity: 0.5; }
       50% { opacity: 1; }
     }
 
-    /* Mobile */
+    /* Leaflet dark mode overrides */
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) .leaflet-control-zoom a {
+        background: var(--bg-primary) !important;
+        color: var(--text-primary) !important;
+        border-color: var(--border) !important;
+      }
+      :root:not([data-theme="light"]) .leaflet-popup-close-button {
+        color: var(--text-secondary) !important;
+      }
+      :root:not([data-theme="light"]) .leaflet-control-attribution {
+        background: rgba(28,28,30,0.7) !important;
+        color: var(--text-tertiary) !important;
+      }
+      :root:not([data-theme="light"]) .leaflet-control-attribution a {
+        color: var(--text-secondary) !important;
+      }
+    }
+
+    [data-theme="dark"] .leaflet-control-zoom a {
+      background: var(--bg-primary) !important;
+      color: var(--text-primary) !important;
+      border-color: var(--border) !important;
+    }
+    [data-theme="dark"] .leaflet-popup-close-button {
+      color: var(--text-secondary) !important;
+    }
+    [data-theme="dark"] .leaflet-control-attribution {
+      background: rgba(28,28,30,0.7) !important;
+      color: var(--text-tertiary) !important;
+    }
+    [data-theme="dark"] .leaflet-control-attribution a {
+      color: var(--text-secondary) !important;
+    }
+
+    /* Mobile: Bottom Sheet */
     @media (max-width: 768px) {
       #sidebar {
-        width: 260px;
+        top: auto;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        width: 100%;
+        height: auto;
+        max-height: 65vh;
+        border-right: none;
+        border-top: 1px solid var(--border);
+        border-radius: 16px 16px 0 0;
+        padding: 0 16px 16px;
+        padding-bottom: calc(16px + env(safe-area-inset-bottom));
+        box-shadow: 0 -2px 20px rgba(0,0,0,0.1);
+      }
+
+      #sidebar::before {
+        content: '';
+        display: block;
+        width: 36px;
+        height: 4px;
+        border-radius: 2px;
+        background: var(--text-tertiary);
+        margin: 8px auto 16px;
+        opacity: 0.5;
+      }
+
+      #sidebar.collapsed {
+        transform: translateY(100%);
       }
 
       #sidebar:not(.collapsed) ~ #toggle-btn {
-        left: 270px;
+        left: 16px;
+        bottom: calc(65vh + 8px);
+        top: auto;
+      }
+
+      #toggle-btn {
+        top: auto;
+        bottom: 16px;
+        left: 16px;
+      }
+
+      .popup-card .popup-desc {
+        max-height: 80px;
+        overflow-y: auto;
+      }
+
+      .ctrl-btn {
+        height: 40px;
+        min-width: 40px;
+        font-size: 14px;
+      }
+
+      #lang-btn {
+        font-size: 13px;
+      }
+
+      .leaflet-popup-content {
+        min-width: 220px;
+        max-width: calc(100vw - 48px);
       }
     }
   </style>
@@ -259,14 +479,14 @@
 
   <div id="map"></div>
 
-  <div id="language-switcher" style="position:fixed; top:14px; right:14px; z-index:1001; display:flex; gap:8px;">
-    <button id="lang-en" class="lang-btn" style="padding:8px 12px; border:1.5px solid #333; background:white; border-radius:4px; cursor:pointer; font-size:12px; font-weight:500; color:#333;">EN</button>
-    <button id="lang-zh" class="lang-btn active" style="padding:8px 12px; border:1.5px solid #333; background:#333; color:white; border-radius:4px; cursor:pointer; font-size:12px; font-weight:500;">中文</button>
+  <div id="top-controls">
+    <button id="lang-btn" class="ctrl-btn" title="Switch language">中文</button>
+    <button id="theme-btn" class="ctrl-btn" title="Toggle theme">☀️</button>
   </div>
 
   <div id="sidebar">
-    <h1>Australia Heritage</h1>
-    <p class="subtitle">澳大利亚历史建筑与博物馆地图</p>
+    <h1>Victoria Heritage</h1>
+    <p class="subtitle">Historic Buildings of Victoria, Australia</p>
 
     <input type="text" id="search-input" placeholder="Search museums & historic places..." />
 
@@ -282,25 +502,43 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
     // Language state
-    let currentLanguage = 'zh';
-    let currentOpenMarker = null; // Track currently open marker
+    let currentLanguage = 'en';
+    let currentOpenMarker = null;
 
-    // Language switcher
-    document.getElementById('lang-en').addEventListener('click', function() {
-      currentLanguage = 'en';
-      this.style.background = '#333';
-      this.style.color = 'white';
-      document.getElementById('lang-zh').style.background = 'white';
-      document.getElementById('lang-zh').style.color = '#333';
-      refreshUI();
+    // Theme state
+    let themeMode = localStorage.getItem('theme') || 'system';
+
+    function applyTheme(mode) {
+      const root = document.documentElement;
+      const isDark = mode === 'dark' || (mode === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+      root.setAttribute('data-theme', isDark ? 'dark' : 'light');
+
+      // Swap map tiles
+      if (typeof map !== 'undefined' && currentTileLayer) {
+        map.removeLayer(currentTileLayer);
+        currentTileLayer = isDark ? darkTiles : lightTiles;
+        currentTileLayer.addTo(map);
+      }
+
+      // Update button icon
+      const btn = document.getElementById('theme-btn');
+      if (mode === 'light') btn.textContent = '☀️';
+      else if (mode === 'dark') btn.textContent = '🌙';
+      else btn.textContent = isDark ? '🌙' : '☀️';
+    }
+
+    document.getElementById('theme-btn').addEventListener('click', () => {
+      const modes = ['system', 'light', 'dark'];
+      const next = modes[(modes.indexOf(themeMode) + 1) % modes.length];
+      themeMode = next;
+      localStorage.setItem('theme', next);
+      applyTheme(next);
     });
 
-    document.getElementById('lang-zh').addEventListener('click', function() {
-      currentLanguage = 'zh';
-      this.style.background = '#333';
-      this.style.color = 'white';
-      document.getElementById('lang-en').style.background = 'white';
-      document.getElementById('lang-en').style.color = '#333';
+    // Language switcher
+    document.getElementById('lang-btn').addEventListener('click', function() {
+      currentLanguage = currentLanguage === 'en' ? 'zh' : 'en';
+      this.textContent = currentLanguage === 'en' ? '中文' : 'EN';
       refreshUI();
     });
 
@@ -439,7 +677,7 @@ const museums = [
   {name:"Tennant Creek Telegraph Station",lat:-19.5555,lng:134.2286,address:"Stuart Highway, Tennant Creek NT 0860",description:{zh:"1872年建成的澳大利亚陆上电报线路中继站，是连接阿德莱德和达尔文通讯的关键节点，也是Tennant Creek城镇发展的起源地。",en:"Built in 1872 as a relay station on the Australian Overland Telegraph Line, a key link connecting Adelaide to Darwin. The origin point of the town of Tennant Creek."},link:"https://en.wikipedia.org/wiki/Tennant_Creek_Telegraph_Station",region:"NT",customImage:"images/nt-12-tennant-creek.jpg"},
   {name:"Museum & Art Gallery of the NT",lat:-12.4411,lng:130.8416,address:"19 Conacher Street, Fannie Bay NT 0820",description:{zh:"北领地最大的博物馆，展示原住民艺术、自然历史和太平洋艺术收藏，包括著名的Cyclone Tracy展览。",en:"The largest museum in the Northern Territory, featuring Aboriginal art, natural history and Pacific art collections, including the famous Cyclone Tracy exhibition."},link:"https://www.magnt.net.au/",region:"NT",customImage:"images/nt-13-magnt.jpg"},
   {name:"Defence of Darwin Experience",lat:-12.4334,lng:130.8386,address:"5434 Alec Fong Lim Drive, East Point NT 0820",description:{zh:"位于East Point军事遗产区的多媒体博物馆，通过沉浸式体验展示1942-1943年日军轰炸达尔文的历史。",en:"A multimedia museum at the East Point military heritage precinct, presenting the history of the Japanese bombing of Darwin in 1942-1943 through immersive experiences."},link:"https://www.magnt.net.au/defence-of-darwin-experience",region:"NT",customImage:"images/nt-14-defence.jpg"},
-  {name:"National Pioneer Women's Hall of Fame",lat:-23.6983,lng:133.8812,address:"Old Courthouse, Parsons Street, Alice Springs NT 0870",description:{zh:"位于1928年建造的爱丽丝泉旧法院大楼内，纪念澳大利亚先驱女性的贡献，展示她们在拓荒时期的非凡故事。",en:"Housed in the 1928 Old Courthouse building in Alice Springs, commemorating the contributions of Australia's pioneer women and their extraordinary stories during the frontier era."},link:"https://www.pioneerwomen.com.au/",region:"NT",customImage:"images/nt-15-pioneer-women.jpg"},
+  {name:"National Pioneer Women's Hall of Fame",lat:-23.6983,lng:133.8812,address:"Old Courthouse, Parsons Street, Alice Springs NT 0870",description:{zh:"位于1928年建造的爱丽丝泉旧法院大楼内，纪念澳大利亚先驱女性的贡献，展示她们在拓荒时期的非凡故事。",en:"Housed in the 1928 Old Courthouse building in Alice Springs, commemorating the contributions of Australia's pioneer women and their extraordinary stories during the frontier era."},link:"https://www.wmoa.com.au/",region:"NT",customImage:"images/nt-15-pioneer-women.jpg"},
 
   // ===== Tasmania (TAS) =====
   {name:"Port Arthur Historic Site",lat:-43.1478,lng:147.8567,address:"6973 Arthur Highway, Port Arthur TAS 7182",description:{zh:"澳大利亚最重要的囚犯遗址之一，世界文化遗产，1830-1877年间曾关押数千名囚犯，如今是塔斯马尼亚最著名的旅游景点。",en:"One of Australia's most significant convict sites and a World Heritage Site, housing thousands of convicts from 1830-1877. Now Tasmania's most famous tourist attraction."},link:"https://portarthur.org.au/",region:"TAS",customImage:"images/tas-01-port-arthur.jpg"},
@@ -447,10 +685,10 @@ const museums = [
   {name:"Cascade Female Factory Historic Site",lat:-42.8897,lng:147.3128,address:"16 Degraves Street, South Hobart TAS 7004",description:{zh:"世界遗产，澳大利亚保存最完好的女性囚犯工厂遗址，1828-1856年间关押女性囚犯，是了解殖民时期女性历史的重要场所。",en:"A World Heritage Site and Australia's best-preserved female convict factory, housing female convicts from 1828-1856. An important site for understanding colonial women's history."},link:"https://femalefactory.org.au/",region:"TAS",customImage:"images/tas-03-female-factory.jpg"},
   {name:"Richmond Bridge",lat:-42.7335,lng:147.4360,address:"Bridge Street, Richmond TAS 7025",description:{zh:"1823年建造的澳大利亚现存最古老石拱桥，由囚犯劳工建造，横跨Coal River，是Richmond遗产小镇的标志。",en:"Australia's oldest surviving stone arch bridge, built by convict labour in 1823, spanning the Coal River. An iconic landmark of the heritage town of Richmond."},link:"https://www.heritage.tas.gov.au/",region:"TAS",customImage:"images/tas-04-richmond-bridge.jpg"},
   {name:"Richmond Gaol",lat:-42.7340,lng:147.4370,address:"48 Bridge Street, Richmond TAS 7025",description:{zh:"1825年建造的澳大利亚最古老监狱之一，比Port Arthur更早，展示囚犯时代的生活和惩罚历史。",en:"One of Australia's oldest gaols, built in 1825, predating Port Arthur. Displays the life and punishment history of the convict era."},link:"https://www.richmondgaol.com.au/",region:"TAS",customImage:"images/tas-05-richmond-gaol.jpg"},
-  {name:"Clarendon House",lat:-41.5650,lng:147.2570,address:"233 Clarendon Station Road, Evandale TAS 7212",description:{zh:"1838年建造的宏伟乔治亚式砂岩庄园，被誉为澳大利亚最精美的殖民时期豪宅之一，坐落在South Esk河畔。",en:"A grand Georgian sandstone estate built in 1838, regarded as one of Australia's finest colonial mansions, situated on the banks of the South Esk River."},link:"https://www.nationaltrust.org.au/places/clarendon-house/",region:"TAS",customImage:"images/tas-06-clarendon.jpg"},
-  {name:"Entally House",lat:-41.5360,lng:147.0760,address:"Entally Road, Hadspen TAS 7290",description:{zh:"约1819年建造的塔斯马尼亚最古老的完整殖民庄园之一，由著名商人Mary Reibey之子建造，保存完好的花园和马厩。",en:"One of Tasmania's oldest intact colonial estates, built c.1819 by the son of famous merchant Mary Reibey, with well-preserved gardens and stables."},link:"https://www.nationaltrust.org.au/places/entally-house/",region:"TAS",customImage:"images/tas-07-entally.jpg"},
+  {name:"Clarendon House",lat:-41.5650,lng:147.2570,address:"233 Clarendon Station Road, Evandale TAS 7212",description:{zh:"1838年建造的宏伟乔治亚式砂岩庄园，被誉为澳大利亚最精美的殖民时期豪宅之一，坐落在South Esk河畔。",en:"A grand Georgian sandstone estate built in 1838, regarded as one of Australia's finest colonial mansions, situated on the banks of the South Esk River."},link:"https://www.nationaltrust.org.au/places/clarendon-estate/",region:"TAS",customImage:"images/tas-06-clarendon.jpg"},
+  {name:"Entally House",lat:-41.5360,lng:147.0760,address:"Entally Road, Hadspen TAS 7290",description:{zh:"约1819年建造的塔斯马尼亚最古老的完整殖民庄园之一，由著名商人Mary Reibey之子建造，保存完好的花园和马厩。",en:"One of Tasmania's oldest intact colonial estates, built c.1819 by the son of famous merchant Mary Reibey, with well-preserved gardens and stables."},link:"https://www.entallyestate.com.au/",region:"TAS",customImage:"images/tas-07-entally.jpg"},
   {name:"Narryna Heritage Museum",lat:-42.8930,lng:147.3355,address:"103 Hampden Road, Battery Point, Hobart TAS 7004",description:{zh:"位于Battery Point的1830年代商人住宅博物馆，收藏丰富的殖民时期装饰艺术、家具和服饰。",en:"A 1830s merchant's residence museum in Battery Point, with rich collections of colonial decorative arts, furniture and costumes."},link:"https://www.narryna.com.au/",region:"TAS",customImage:"images/tas-08-narryna.jpg"},
-  {name:"Penitentiary Chapel Historic Site",lat:-42.8750,lng:147.3250,address:"Corner Brisbane and Campbell Streets, Hobart TAS 7000",description:{zh:"1830年代建造的囚犯礼拜堂，地板下设有单独禁闭室，提供导览参观探索塔斯马尼亚囚犯历史。",en:"A convict chapel built in the 1830s with solitary confinement cells beneath the floor, offering guided tours exploring Tasmania's convict history."},link:"https://www.nationaltrust.org.au/places/penitentiary-chapel-historic-site/",region:"TAS",customImage:"images/tas-09-penitentiary.jpg"},
+  {name:"Penitentiary Chapel Historic Site",lat:-42.8750,lng:147.3250,address:"Corner Brisbane and Campbell Streets, Hobart TAS 7000",description:{zh:"1830年代建造的囚犯礼拜堂，地板下设有单独禁闭室，提供导览参观探索塔斯马尼亚囚犯历史。",en:"A convict chapel built in the 1830s with solitary confinement cells beneath the floor, offering guided tours exploring Tasmania's convict history."},link:"https://www.nationaltrust.org.au/places/penitentiary/",region:"TAS",customImage:"images/tas-09-penitentiary.jpg"},
   {name:"Highfield House",lat:-40.7540,lng:145.2180,address:"Green Hills Road, Stanley TAS 7331",description:{zh:"1830年代为Van Diemen's Land Company建造的摄政时期风格庄园，坐落在Stanley山丘上俯瞰The Nut。",en:"A Regency-style estate built in the 1830s for the Van Diemen's Land Company, set on Stanley's hillside overlooking The Nut."},link:"https://parks.tas.gov.au/explore-our-parks/highfield-historic-site",region:"TAS",customImage:"images/tas-10-highfield.jpg"},
   {name:"Franklin House",lat:-41.4606,lng:147.1572,address:"413 Hobart Road, Youngtown TAS 7249",description:{zh:"1838年建造的殖民时期宅邸，曾用作私立学校，拥有精美的乔治亚建筑风格内饰和花园。",en:"A colonial residence built in 1838, once used as a private school, with fine Georgian-style interiors and gardens."},link:"https://www.nationaltrust.org.au/places/franklin-house/",region:"TAS",customImage:"images/tas-11-franklin.jpg"},
   {name:"Home Hill",lat:-41.1770,lng:146.3320,address:"77 Middle Road, Devonport TAS 7310",description:{zh:"澳大利亚第10任总理Joseph Lyons及其夫人Dame Enid Lyons的故居，保存完好的家族住宅和纪念品。",en:"The home of Australia's 10th Prime Minister Joseph Lyons and his wife Dame Enid Lyons, a well-preserved family residence with memorabilia."},link:"https://www.nationaltrust.org.au/places/home-hill/",region:"TAS",customImage:"images/tas-12-home-hill.jpg"},
@@ -498,10 +736,25 @@ const regions = [
 
     L.control.zoom({ position: 'bottomright' }).addTo(map);
 
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+    // Theme-aware tile layers
+    const lightTiles = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>',
       maxZoom: 19
-    }).addTo(map);
+    });
+
+    const darkTiles = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>',
+      maxZoom: 19
+    });
+
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)');
+    const savedTheme = localStorage.getItem('theme') || 'system';
+    let currentTileLayer = lightTiles; // placeholder, applyTheme will set the right one
+    applyTheme(savedTheme);
+
+    prefersDark.addEventListener('change', () => {
+      if (themeMode === 'system') applyTheme('system');
+    });
 
     // --- Region color & fullName lookup ---
     const regionColorMap = {};
