@@ -506,11 +506,12 @@
     let currentOpenMarker = null;
 
     // Theme state
-    let themeMode = localStorage.getItem('theme') || 'system';
+    const savedTheme = localStorage.getItem('theme');
+    let themeMode = savedTheme || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
 
     function applyTheme(mode) {
       const root = document.documentElement;
-      const isDark = mode === 'dark' || (mode === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+      const isDark = mode === 'dark';
       root.setAttribute('data-theme', isDark ? 'dark' : 'light');
 
       // Swap map tiles
@@ -521,18 +522,14 @@
       }
 
       // Update button icon
-      const btn = document.getElementById('theme-btn');
-      if (mode === 'light') btn.textContent = '☀️';
-      else if (mode === 'dark') btn.textContent = '🌙';
-      else btn.textContent = isDark ? '🌙' : '☀️';
+      document.getElementById('theme-btn').textContent = isDark ? '🌙' : '☀️';
     }
 
     document.getElementById('theme-btn').addEventListener('click', () => {
-      const modes = ['system', 'light', 'dark'];
-      const next = modes[(modes.indexOf(themeMode) + 1) % modes.length];
-      themeMode = next;
-      localStorage.setItem('theme', next);
-      applyTheme(next);
+      const isCurrentlyDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      themeMode = isCurrentlyDark ? 'light' : 'dark';
+      localStorage.setItem('theme', themeMode);
+      applyTheme(themeMode);
     });
 
     // Language switcher
@@ -748,12 +745,15 @@ const regions = [
     });
 
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)');
-    const savedTheme = localStorage.getItem('theme') || 'system';
-    let currentTileLayer = lightTiles; // placeholder, applyTheme will set the right one
-    applyTheme(savedTheme);
+    let currentTileLayer = lightTiles; // placeholder, applyTheme will set the correct one
+    applyTheme(themeMode);
 
+    // Follow system changes only when user hasn't manually picked a theme
     prefersDark.addEventListener('change', () => {
-      if (themeMode === 'system') applyTheme('system');
+      if (!localStorage.getItem('theme')) {
+        themeMode = prefersDark.matches ? 'dark' : 'light';
+        applyTheme(themeMode);
+      }
     });
 
     // --- Region color & fullName lookup ---
