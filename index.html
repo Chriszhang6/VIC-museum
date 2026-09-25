@@ -809,19 +809,25 @@ const regions = [
     async function tryRenderOgImage(targetElement, websiteUrl, museumData = null, requestId = null) {
       if (!websiteUrl) return false;
 
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 8000);
+
       try {
         const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(websiteUrl)}`;
-        const response = await fetch(proxyUrl);
+        const response = await fetch(proxyUrl, { signal: controller.signal });
         if (!response.ok) return false;
 
         const pageText = await response.text();
-        const ogImageMatch = pageText.match(/<meta\s+property="og:image"\s+content="([^"]+)"/i);
-        if (!ogImageMatch || !ogImageMatch[1]) return false;
+        const doc = new DOMParser().parseFromString(pageText, 'text/html');
+        const ogImage = doc.querySelector('meta[property="og:image"]')?.getAttribute('content');
+        if (!ogImage) return false;
 
-        renderPreviewImage(targetElement, ogImageMatch[1], museumData, requestId);
+        renderPreviewImage(targetElement, ogImage, museumData, requestId);
         return true;
       } catch (error) {
         return false;
+      } finally {
+        clearTimeout(timeoutId);
       }
     }
 
