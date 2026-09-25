@@ -791,9 +791,9 @@ const regions = [
       image.alt = museumData && museumData.name ? `${museumData.name} preview` : 'Preview image';
       image.loading = 'lazy';
       image.onerror = () => renderPreviewPlaceholder(targetElement, museumData);
-      image.src = imageUrl;
       targetElement.innerHTML = '';
       targetElement.appendChild(image);
+      image.src = imageUrl;
       targetElement.classList.remove('preview-loading');
     }
 
