@@ -774,7 +774,11 @@ const regions = [
       return regionColorMap[region] || '#999';
     }
 
-    function renderPreviewPlaceholder(targetElement, museumData = null) {
+    function renderPreviewPlaceholder(targetElement, museumData = null, requestId = null) {
+      if (requestId && targetElement.dataset.previewRequestId !== requestId) {
+        return;
+      }
+
       const label = museumData && museumData.name
         ? `${museumData.name} - No preview image`
         : 'No preview image';
@@ -787,14 +791,21 @@ const regions = [
     }
 
     function renderPreviewImage(targetElement, imageUrl, museumData = null) {
+      const requestId = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+      targetElement.dataset.previewRequestId = requestId;
+
       const image = document.createElement('img');
       image.alt = museumData && museumData.name ? `${museumData.name} preview` : 'Preview image';
       image.loading = 'lazy';
-      image.onerror = () => renderPreviewPlaceholder(targetElement, museumData);
+      image.onload = () => {
+        if (targetElement.dataset.previewRequestId === requestId) {
+          targetElement.classList.remove('preview-loading');
+        }
+      };
+      image.onerror = () => renderPreviewPlaceholder(targetElement, museumData, requestId);
       targetElement.innerHTML = '';
       targetElement.appendChild(image);
       image.src = imageUrl;
-      targetElement.classList.remove('preview-loading');
     }
 
     // --- Preview image loading (local first, no external API key dependency) ---
