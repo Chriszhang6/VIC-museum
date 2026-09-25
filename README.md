@@ -82,7 +82,7 @@ The map includes 26 major heritage sites from across Victoria:
 - **Frontend**: HTML5, CSS3, JavaScript (ES6+)
 - **Mapping**: Leaflet.js 1.9.4
 - **Styling**: Custom CSS with responsive design
-- **Preview API**: Microlink API for website previews
+- **Preview Images**: Local image assets with built-in placeholder fallback (no API key required)
 - **Tile Layer**: CartoDB Voyager tiles
 
 ## Language Support

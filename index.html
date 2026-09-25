@@ -364,6 +364,12 @@
       object-fit: cover;
     }
 
+    .popup-preview .preview-placeholder {
+      padding: 12px;
+      text-align: center;
+      line-height: 1.4;
+    }
+
     .preview-loading {
       animation: pulse 1.5s infinite;
     }
@@ -768,85 +774,33 @@ const regions = [
       return regionColorMap[region] || '#999';
     }
 
-    // --- Fetch preview image from Microlink API or Open Graph tags ---
-    async function fetchPreviewImage(url, targetElement, museumData = null) {
-      // First, check if museum has a custom image
+    function renderPreviewPlaceholder(targetElement, museumData = null) {
+      const label = museumData && museumData.name
+        ? `${museumData.name} - No preview image`
+        : 'No preview image';
+      targetElement.innerHTML = `<div class="preview-placeholder">${label}</div>`;
+      targetElement.classList.remove('preview-loading');
+    }
+
+    function renderPreviewImage(targetElement, imageUrl, museumData = null) {
+      const image = document.createElement('img');
+      image.alt = museumData && museumData.name ? `${museumData.name} preview` : 'Preview image';
+      image.loading = 'lazy';
+      image.onerror = () => renderPreviewPlaceholder(targetElement, museumData);
+      image.src = imageUrl;
+      targetElement.innerHTML = '';
+      targetElement.appendChild(image);
+      targetElement.classList.remove('preview-loading');
+    }
+
+    // --- Preview image loading (local first, no external API key dependency) ---
+    function fetchPreviewImage(url, targetElement, museumData = null) {
       if (museumData && museumData.customImage) {
-        targetElement.innerHTML = `<img src="${museumData.customImage}" alt="Preview" onerror="this.parentElement.innerHTML='Preview unavailable'">`;
-        targetElement.classList.remove('preview-loading');
+        renderPreviewImage(targetElement, museumData.customImage, museumData);
         return;
       }
 
-      // Create abort controller with 8 second timeout
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 8000);
-
-      try {
-        // Try Microlink API with timeout
-        const response = await fetch(`https://api.microlink.io?url=${encodeURIComponent(url)}`, { signal: controller.signal });
-        if (response.ok) {
-          const data = await response.json();
-          if (data.data && data.data.image && data.data.image.url) {
-            clearTimeout(timeoutId);
-            const imageUrl = data.data.image.url;
-            targetElement.innerHTML = `<img src="${imageUrl}" alt="Preview" onerror="this.parentElement.innerHTML='Preview unavailable'">`;
-            targetElement.classList.remove('preview-loading');
-            return;
-          }
-        }
-      } catch (error) {
-        console.error('Microlink API failed:', error);
-      }
-
-      // Fallback: Try to fetch Open Graph og:image from the website directly
-      try {
-        const pageResponse = await fetch(url, { signal: controller.signal });
-        if (pageResponse.ok) {
-          const pageText = await pageResponse.text();
-          const ogImageMatch = pageText.match(/<meta\s+property="og:image"\s+content="([^"]+)"/);
-          if (ogImageMatch && ogImageMatch[1]) {
-            clearTimeout(timeoutId);
-            const imageUrl = ogImageMatch[1];
-            targetElement.innerHTML = `<img src="${imageUrl}" alt="Preview" onerror="this.parentElement.innerHTML='Preview unavailable'">`;
-            targetElement.classList.remove('preview-loading');
-            return;
-          }
-        }
-      } catch (error) {
-        console.error('Failed to fetch Open Graph image:', error);
-      }
-
-      // Additional fallback: Try using CORS proxy with separate timeout
-      const proxyController = new AbortController();
-      const proxyTimeoutId = setTimeout(() => proxyController.abort(), 8000);
-      try {
-        const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
-        const pageResponse = await fetch(proxyUrl, { signal: proxyController.signal });
-        if (pageResponse.ok) {
-          const pageText = await pageResponse.text();
-          const ogImageMatch = pageText.match(/<meta\s+property="og:image"\s+content="([^"]+)"/);
-          if (ogImageMatch && ogImageMatch[1]) {
-            clearTimeout(proxyTimeoutId);
-            clearTimeout(timeoutId);
-            const imageUrl = ogImageMatch[1];
-            targetElement.innerHTML = `<img src="${imageUrl}" alt="Preview" onerror="this.parentElement.innerHTML='Preview unavailable'">`;
-            targetElement.classList.remove('preview-loading');
-            return;
-          }
-        }
-      } catch (error) {
-        console.error('CORS proxy failed:', error);
-      }
-
-      // If all methods fail, clear timeouts and show unavailable
-      clearTimeout(timeoutId);
-      clearTimeout(proxyTimeoutId);
-      
-      // Only update if not already updated (race condition check)
-      if (targetElement.classList.contains('preview-loading')) {
-        targetElement.innerHTML = 'No preview available';
-        targetElement.classList.remove('preview-loading');
-      }
+      renderPreviewPlaceholder(targetElement, museumData);
     }
 
     // --- Markers ---
