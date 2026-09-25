@@ -821,7 +821,14 @@ const regions = [
         const doc = new DOMParser().parseFromString(pageText, 'text/html');
         const ogImage = doc.querySelector('meta[property="og:image"]')?.getAttribute('content');
         if (!ogImage) return false;
-        const resolvedOgImage = new URL(ogImage, websiteUrl).href;
+
+        const ogImageTrimmed = ogImage.trim();
+        let resolvedOgImage;
+        try {
+          resolvedOgImage = new URL(ogImageTrimmed, websiteUrl).href;
+        } catch (error) {
+          resolvedOgImage = new URL(encodeURI(ogImageTrimmed), websiteUrl).href;
+        }
 
         renderPreviewImage(targetElement, resolvedOgImage, museumData, requestId);
         return true;

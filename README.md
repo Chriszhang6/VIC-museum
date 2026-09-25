@@ -139,7 +139,7 @@ The application adapts to different screen sizes:
 
 This is a client-side application. No data is transmitted to external servers except:
 - Map tiles from CartoDB
-- Preview images from website preview API
+- Optional preview fallback fetches via allorigins CORS proxy (only when local image is missing)
 - External links to heritage site websites
 
 ## Customization
