@@ -779,9 +779,8 @@ const regions = [
         return;
       }
 
-      const label = museumData && museumData.name
-        ? `${museumData.name} - No preview image`
-        : 'No preview image';
+      const baseLabel = 'No preview image';
+      const label = museumData && museumData.name ? `${museumData.name} - ${baseLabel}` : baseLabel;
       targetElement.innerHTML = '';
       const placeholder = document.createElement('div');
       placeholder.className = 'preview-placeholder';
@@ -807,8 +806,27 @@ const regions = [
       image.src = imageUrl;
     }
 
+    async function tryRenderOgImage(targetElement, websiteUrl, museumData = null, requestId = null) {
+      if (!websiteUrl) return false;
+
+      try {
+        const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(websiteUrl)}`;
+        const response = await fetch(proxyUrl);
+        if (!response.ok) return false;
+
+        const pageText = await response.text();
+        const ogImageMatch = pageText.match(/<meta\s+property="og:image"\s+content="([^"]+)"/i);
+        if (!ogImageMatch || !ogImageMatch[1]) return false;
+
+        renderPreviewImage(targetElement, ogImageMatch[1], museumData, requestId);
+        return true;
+      } catch (error) {
+        return false;
+      }
+    }
+
     // --- Preview image loading (local first, no external API key dependency) ---
-    function fetchPreviewImage(targetElement, museumData = null) {
+    function fetchPreviewImage(websiteUrl, targetElement, museumData = null) {
       const requestId = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
       targetElement.dataset.previewRequestId = requestId;
 
@@ -817,7 +835,11 @@ const regions = [
         return;
       }
 
-      renderPreviewPlaceholder(targetElement, museumData, requestId);
+      tryRenderOgImage(targetElement, websiteUrl, museumData, requestId).then((rendered) => {
+        if (!rendered) {
+          renderPreviewPlaceholder(targetElement, museumData, requestId);
+        }
+      });
     }
 
     // --- Markers ---
@@ -861,7 +883,7 @@ const regions = [
         currentOpenMarker = marker; // Track this marker as currently open
         const previewDiv = document.querySelector(`[data-url="${m.link}"]`);
         if (previewDiv && !previewDiv.dataset.loaded) {
-          fetchPreviewImage(previewDiv, m);
+          fetchPreviewImage(m.link, previewDiv, m);
           previewDiv.dataset.loaded = 'true';
         }
       });
