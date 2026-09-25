@@ -790,32 +790,39 @@ const regions = [
       targetElement.classList.remove('preview-loading');
     }
 
-    function renderPreviewImage(targetElement, imageUrl, museumData = null) {
-      const requestId = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
-      targetElement.dataset.previewRequestId = requestId;
-
+    function renderPreviewImage(targetElement, imageUrl, museumData = null, requestId = null) {
       const image = document.createElement('img');
       image.alt = museumData && museumData.name ? `${museumData.name} preview` : 'Preview image';
       image.loading = 'lazy';
+      let failedBeforeAppend = false;
       image.onload = () => {
-        if (targetElement.dataset.previewRequestId === requestId) {
+        if (!requestId || targetElement.dataset.previewRequestId === requestId) {
           targetElement.classList.remove('preview-loading');
         }
       };
-      image.onerror = () => renderPreviewPlaceholder(targetElement, museumData, requestId);
+      image.onerror = () => {
+        failedBeforeAppend = true;
+        renderPreviewPlaceholder(targetElement, museumData, requestId);
+      };
+      image.src = imageUrl;
+      if (failedBeforeAppend || (requestId && targetElement.dataset.previewRequestId !== requestId)) {
+        return;
+      }
       targetElement.innerHTML = '';
       targetElement.appendChild(image);
-      image.src = imageUrl;
     }
 
     // --- Preview image loading (local first, no external API key dependency) ---
     function fetchPreviewImage(url, targetElement, museumData = null) {
+      const requestId = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+      targetElement.dataset.previewRequestId = requestId;
+
       if (museumData && museumData.customImage) {
-        renderPreviewImage(targetElement, museumData.customImage, museumData);
+        renderPreviewImage(targetElement, museumData.customImage, museumData, requestId);
         return;
       }
 
-      renderPreviewPlaceholder(targetElement, museumData);
+      renderPreviewPlaceholder(targetElement, museumData, requestId);
     }
 
     // --- Markers ---
