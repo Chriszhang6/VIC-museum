@@ -774,8 +774,8 @@ const regions = [
       return regionColorMap[region] || '#999';
     }
 
-    function renderPreviewPlaceholder(targetElement, museumData = null, requestId = null) {
-      if (requestId && targetElement.dataset.previewRequestId !== requestId) {
+    function renderPreviewPlaceholder(targetElement, museumData = null, requestId) {
+      if (targetElement.dataset.previewRequestId !== requestId) {
         return;
       }
 
@@ -789,24 +789,24 @@ const regions = [
       targetElement.classList.remove('preview-loading');
     }
 
-    function renderPreviewImage(targetElement, imageUrl, museumData = null, requestId = null) {
+    function renderPreviewImage(targetElement, imageUrl, museumData = null, requestId) {
       const image = document.createElement('img');
       image.alt = museumData && museumData.name ? `${museumData.name} preview` : 'Preview image';
       image.loading = 'lazy';
       image.onload = () => {
-        if (requestId && targetElement.dataset.previewRequestId !== requestId) return;
+        if (targetElement.dataset.previewRequestId !== requestId) return;
         targetElement.innerHTML = '';
         targetElement.appendChild(image);
         targetElement.classList.remove('preview-loading');
       };
       image.onerror = () => {
-        if (requestId && targetElement.dataset.previewRequestId !== requestId) return;
+        if (targetElement.dataset.previewRequestId !== requestId) return;
         renderPreviewPlaceholder(targetElement, museumData, requestId);
       };
       image.src = imageUrl;
     }
 
-    async function tryRenderOgImage(targetElement, websiteUrl, museumData = null, requestId = null) {
+    async function tryRenderOgImage(targetElement, websiteUrl, museumData = null, requestId) {
       if (!websiteUrl) return false;
 
       const controller = new AbortController();
