@@ -778,7 +778,11 @@ const regions = [
       const label = museumData && museumData.name
         ? `${museumData.name} - No preview image`
         : 'No preview image';
-      targetElement.innerHTML = `<div class="preview-placeholder">${label}</div>`;
+      targetElement.innerHTML = '';
+      const placeholder = document.createElement('div');
+      placeholder.className = 'preview-placeholder';
+      placeholder.textContent = label;
+      targetElement.appendChild(placeholder);
       targetElement.classList.remove('preview-loading');
     }
 
