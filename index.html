@@ -808,7 +808,7 @@ const regions = [
     }
 
     // --- Preview image loading (local first, no external API key dependency) ---
-    function fetchPreviewImage(url, targetElement, museumData = null) {
+    function fetchPreviewImage(targetElement, museumData = null) {
       const requestId = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
       targetElement.dataset.previewRequestId = requestId;
 
@@ -861,7 +861,7 @@ const regions = [
         currentOpenMarker = marker; // Track this marker as currently open
         const previewDiv = document.querySelector(`[data-url="${m.link}"]`);
         if (previewDiv && !previewDiv.dataset.loaded) {
-          fetchPreviewImage(m.link, previewDiv, m);
+          fetchPreviewImage(previewDiv, m);
           previewDiv.dataset.loaded = 'true';
         }
       });
