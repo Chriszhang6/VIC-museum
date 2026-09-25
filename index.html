@@ -794,22 +794,17 @@ const regions = [
       const image = document.createElement('img');
       image.alt = museumData && museumData.name ? `${museumData.name} preview` : 'Preview image';
       image.loading = 'lazy';
-      let failedBeforeAppend = false;
       image.onload = () => {
-        if (!requestId || targetElement.dataset.previewRequestId === requestId) {
-          targetElement.classList.remove('preview-loading');
-        }
+        if (requestId && targetElement.dataset.previewRequestId !== requestId) return;
+        targetElement.innerHTML = '';
+        targetElement.appendChild(image);
+        targetElement.classList.remove('preview-loading');
       };
       image.onerror = () => {
-        failedBeforeAppend = true;
+        if (requestId && targetElement.dataset.previewRequestId !== requestId) return;
         renderPreviewPlaceholder(targetElement, museumData, requestId);
       };
       image.src = imageUrl;
-      if (failedBeforeAppend || (requestId && targetElement.dataset.previewRequestId !== requestId)) {
-        return;
-      }
-      targetElement.innerHTML = '';
-      targetElement.appendChild(image);
     }
 
     // --- Preview image loading (local first, no external API key dependency) ---
