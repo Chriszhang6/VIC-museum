@@ -827,7 +827,11 @@ const regions = [
         try {
           resolvedOgImage = new URL(ogImageTrimmed, websiteUrl).href;
         } catch (error) {
-          resolvedOgImage = new URL(encodeURI(ogImageTrimmed), websiteUrl).href;
+          try {
+            resolvedOgImage = new URL(encodeURI(ogImageTrimmed), websiteUrl).href;
+          } catch (innerError) {
+            return false;
+          }
         }
 
         renderPreviewImage(targetElement, resolvedOgImage, museumData, requestId);
