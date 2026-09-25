@@ -823,19 +823,13 @@ const regions = [
         if (!ogImage) return false;
 
         const ogImageTrimmed = ogImage.trim();
-        let resolvedOgImage;
         try {
-          resolvedOgImage = new URL(ogImageTrimmed, websiteUrl).href;
+          const resolvedOgImage = new URL(ogImageTrimmed, websiteUrl).href;
+          renderPreviewImage(targetElement, resolvedOgImage, museumData, requestId);
+          return true;
         } catch (error) {
-          try {
-            resolvedOgImage = new URL(encodeURI(ogImageTrimmed), websiteUrl).href;
-          } catch (innerError) {
-            return false;
-          }
+          return false;
         }
-
-        renderPreviewImage(targetElement, resolvedOgImage, museumData, requestId);
-        return true;
       } catch (error) {
         return false;
       } finally {
@@ -857,6 +851,8 @@ const regions = [
         if (!rendered) {
           renderPreviewPlaceholder(targetElement, museumData, requestId);
         }
+      }).catch(() => {
+        renderPreviewPlaceholder(targetElement, museumData, requestId);
       });
     }
 
